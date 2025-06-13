@@ -1,6 +1,7 @@
 package com.example.Controller;
 
 
+
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,12 +21,14 @@ public class OrderController {
 	@Autowired
 	private OrderService orderService;	
 	
+
 	@PostMapping("/placeorder/{userId}/{productId}")
 	public String placeOrder(@PathVariable Long userId, @PathVariable Long productId) {
 
 		return orderService.placeOrder(userId, productId);
 	}
 	
+
 	@GetMapping("/getorderbyuserid/{userId}")
 	public List<OrderProduct> getOrderByUserId(@PathVariable Long userId) {
 		

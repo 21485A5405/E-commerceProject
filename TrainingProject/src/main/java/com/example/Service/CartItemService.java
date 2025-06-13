@@ -5,6 +5,16 @@ import java.util.Optional;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
+import java.util.function.Function;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+
 import com.example.Entity.CartItem;
 import com.example.Entity.Product;
 import com.example.Entity.User;
@@ -50,7 +60,7 @@ public class CartItemService {
 			cartItem.setProductQuantity(quantity+cartItem.getProductQuantity());
 			cartItem.setTotalPrice(cartItem.getProductQuantity()*product.getProductPrice());
 			cartItemRepo.save(cartItem);
-			
+
 		}else {
 			
 			cartItem = new CartItem();
@@ -100,5 +110,5 @@ public class CartItemService {
 		}
 		return cartItems;
 	}
-	
+
 }

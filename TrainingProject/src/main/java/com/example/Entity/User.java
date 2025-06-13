@@ -19,12 +19,11 @@ public class User {
 	private String userPassword;
 	private String shippingAddress;
 	private String paymentDetails;
+
 	private String role; // for future purpose to check whether the user is admin or noraml user
 	
 	@OneToMany(mappedBy = "user")
 	private List<CartItem> cartItems;
-
-	
 
 	public User() {
 		

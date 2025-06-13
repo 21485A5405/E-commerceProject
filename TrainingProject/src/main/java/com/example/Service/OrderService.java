@@ -2,7 +2,10 @@ package com.example.Service;
 
 import java.util.List;
 import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import com.example.Entity.CartItem;
 import com.example.Entity.OrderProduct;
 import com.example.Entity.Product;
@@ -65,7 +68,6 @@ public class OrderService {
 	   
 	    return "OrderPlaced";
 	}
-
 
 	public List<OrderProduct> getOrderByUser(Long userId) {
 		

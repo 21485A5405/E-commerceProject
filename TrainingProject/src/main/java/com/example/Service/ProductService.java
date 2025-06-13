@@ -5,12 +5,12 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+
 import org.springframework.stereotype.Service;
 
 import com.example.Entity.Product;
 import com.example.Repository.ProductRepo;
 import com.example.exceptionfile.ProductNotFoundException;
-
 @Service
 public class ProductService {
 	
@@ -21,7 +21,6 @@ public class ProductService {
 		return productRepo.save(product);
 	}
 
-	
 	public String productUpdate(Long productId, Product product) {
 		// TODO Auto-generated method stub
 		

@@ -12,8 +12,7 @@ import com.example.Entity.OrderProduct;
 public interface OrderRepo extends JpaRepository<OrderProduct, Long>{
 	
 	Optional<OrderProduct> findByProduct_ProductId (Long productId);
-	
-	List<OrderProduct> findByUser_UserId(Long userId);
 
+	List<OrderProduct> findByUser_UserId(Long userId);
 
 }
