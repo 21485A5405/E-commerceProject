@@ -1,9 +1,12 @@
 package com.example.Entity;
 
+import java.util.List;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 
 @Entity
 public class User {
@@ -16,6 +19,11 @@ public class User {
 	private String userPassword;
 	private String shippingAddress;
 	private String paymentDetails;
+	private String role; // for future purpose to check whether the user is admin or noraml user
+	
+	@OneToMany(mappedBy = "user")
+	private List<CartItem> cartItems;
+
 	
 
 	public User() {

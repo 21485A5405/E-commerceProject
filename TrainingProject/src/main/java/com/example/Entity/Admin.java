@@ -5,10 +5,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
-//AdminID
-//o Name
-//o Role
-//o Permissions
 @Entity
 public class Admin {
 	
@@ -56,8 +52,5 @@ public class Admin {
 	public void setAdminPermissions(String adminPermissions) {
 		this.adminPermissions = adminPermissions;
 	}
-	
-	
-	
 
 }

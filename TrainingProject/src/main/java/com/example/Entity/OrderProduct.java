@@ -1,30 +1,25 @@
 package com.example.Entity;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.MapsId;
-import jakarta.persistence.OneToOne;
 
 @Entity
 public class OrderProduct {
 	
-	@Id 
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long orderId;
 
     @ManyToOne
     @JoinColumn(name = "userId", nullable = false)
     private User user;
 
-    @OneToOne
-    @MapsId
-    @JoinColumn(name = "orderId", nullable = false) 
+    @ManyToOne
+    @JoinColumn(name = "productId", nullable = false) 
     private Product product;
 	
 	private double totalPrice;

@@ -2,19 +2,9 @@ package com.example.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-
 import com.example.Entity.CartItem;
 import com.example.Entity.Product;
 import com.example.Entity.User;
@@ -60,7 +50,6 @@ public class CartItemService {
 			cartItem.setProductQuantity(quantity+cartItem.getProductQuantity());
 			cartItem.setTotalPrice(cartItem.getProductQuantity()*product.getProductPrice());
 			cartItemRepo.save(cartItem);
-//			cartItemRepo.delete(cartItem);
 			
 		}else {
 			
@@ -75,6 +64,41 @@ public class CartItemService {
 			System.out.println("Product Item Added Into Cart");
 		}
 			return cartItem;
+	}
+
+	public CartItem getCartItems(Long userId, Long productId) {
+		// TODO Auto-generated method stub
+		Optional<CartItem> c = cartItemRepo.findByUser_UserIdAndProduct_ProductId(userId, productId);
+		if(!c.isPresent()) {
+			throw new UserNotFoundException("User with respective Product Not Found");
+		}
+			CartItem cartItem = c.get();
+		return cartItem;
+	}
+
+	public String deleteItem(Long userId, Long productId) {
+		// TODO Auto-generated method stub
+		Optional<CartItem> c = cartItemRepo.findByUser_UserIdAndProduct_ProductId(userId, productId);
+		if (!c.isPresent()) {
+		    throw new ProductNotFoundException("No Items Found For That Product ID and User ID to Delete");
+		}
+		Long cartItem = c.get().getCartItemId();
+		cartItemRepo.deleteById(cartItem);
+		return "Item Deleted From the cart";
+	}
+
+	public List<CartItem> getAllCartItems(CartItem cartItem) {
+		
+		return cartItemRepo.findAll();
+	}
+
+	public List<CartItem> getItemsByUserId(Long userId) {
+		// TODO Auto-generated method stub
+		List<CartItem> cartItems = cartItemRepo.findByUser_UserId(userId);
+		if(cartItems.isEmpty()) {
+			throw new UserNotFoundException("User Not Found");
+		}
+		return cartItems;
 	}
 	
 }
