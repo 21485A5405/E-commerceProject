@@ -1,4 +1,4 @@
-package com.example.Entity;
+package com.example.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -12,8 +12,11 @@ public class Admin {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long adminId;
 	private String adminName;
+	
 	private String adminRole;
 	private String adminPermissions;
+	
+	private String userType;
 	
 	public Admin() {
 		
@@ -51,6 +54,13 @@ public class Admin {
 	}
 	public void setAdminPermissions(String adminPermissions) {
 		this.adminPermissions = adminPermissions;
+	}
+	public String getUserType() {
+		return userType;
+	}
+
+	public void setUserType(String userType) {
+		this.userType = userType;
 	}
 
 }

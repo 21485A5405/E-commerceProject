@@ -1,4 +1,4 @@
-package com.example.Entity;
+package com.example.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -28,6 +28,11 @@ public class Product {
 
     @JsonProperty("product_imageurl")
     private String productImageURL;
+    
+    @JsonProperty("product_quantity")
+    private int productQuantity;
+    
+	
 	public Product() {
 		
 	}
@@ -77,6 +82,11 @@ public class Product {
 	public void setProductImageURL(String productImageURL) {
 		this.productImageURL = productImageURL;
 	}
-	
+	public int getProductQuantity() {
+		return productQuantity;
+	}
+	public void setProductQuantity(int productQuantity) {
+		this.productQuantity = productQuantity;
+	}
 
 }

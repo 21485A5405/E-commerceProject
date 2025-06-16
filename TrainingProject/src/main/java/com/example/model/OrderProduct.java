@@ -1,4 +1,4 @@
-package com.example.Entity;
+package com.example.model;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -29,6 +29,16 @@ public class OrderProduct {
 	
 	private String orderStatus;
 	
+	private int orderQuantity;
+	
+	public int getOrderQuantity() {
+		return orderQuantity;
+	}
+
+	public void setOrderQuantity(int orderQuantity) {
+		this.orderQuantity = orderQuantity;
+	}
+
 	public OrderProduct() {
 		
 	}

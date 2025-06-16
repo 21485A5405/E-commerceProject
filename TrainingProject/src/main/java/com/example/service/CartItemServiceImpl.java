@@ -1,44 +1,37 @@
-package com.example.Service;
+package com.example.service;
 
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.function.Function;
-
-import org.springframework.beans.factory.annotation.Autowired;
-
-
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-
-import com.example.Entity.CartItem;
-import com.example.Entity.Product;
-import com.example.Entity.User;
-import com.example.Repository.CartItemRepo;
-import com.example.Repository.ProductRepo;
-import com.example.Repository.UserRepo;
+import com.example.exceptionfile.CustomException;
 import com.example.exceptionfile.ProductNotFoundException;
 import com.example.exceptionfile.UserNotFoundException;
+import com.example.model.CartItem;
+import com.example.model.Product;
+import com.example.model.User;
+import com.example.repo.CartItemRepo;
+import com.example.repo.ProductRepo;
+import com.example.repo.UserRepo;
+
+import jakarta.transaction.Transactional;
 
 @Service
-public class CartItemService {
+public class CartItemServiceImpl implements CartItemService{
 	
 	private CartItemRepo cartItemRepo;
 	private ProductRepo productRepo;
 	private UserRepo userRepo;
 	
-	public CartItemService(CartItemRepo cartItemRepo, ProductRepo productRepo, UserRepo userRepo) {
+	public CartItemServiceImpl(CartItemRepo cartItemRepo, ProductRepo productRepo, UserRepo userRepo) {
 		this.cartItemRepo = cartItemRepo;
 		this.productRepo = productRepo;
 		this.userRepo = userRepo;
 		
 	}
 	
-	public CartItem addProduct(Long userId,Long productId, int quantity) {
+	public String addProductToCart(Long userId,Long productId, int quantity) {
 		
 		Optional<Product> p = productRepo.findById(productId);
 		
@@ -47,12 +40,22 @@ public class CartItemService {
 		Optional<CartItem> itemExist = cartItemRepo.findByUser_UserIdAndProduct_ProductId(userId, productId);
 		
 		if(!p.isPresent()) {
-			throw new ProductNotFoundException("Product Not Found to Add Into Cart");
+			throw new ProductNotFoundException("Product Not Found/ Exists to Add Into Cart");
 		}else if(!u.isPresent()) {
 			throw new UserNotFoundException("User Not Found");
 		}
 		Product product =p.get();
 		CartItem cartItem = new CartItem();
+		if(quantity <=0) {
+			throw new CustomException("Quantity Cannot be Less than Zero");
+		}
+		if(product.getProductQuantity() == 0) {
+			throw new CustomException("Out Of Stock");
+		}
+		if(product.getProductQuantity()<=quantity) {
+			
+			throw new CustomException("Enough Quantity Selected , We have "+product.getProductQuantity()+" Items available. Please Selcct Under "+product.getProductQuantity()+" as Quantity");
+		}
 		
 		if(itemExist.isPresent()) {
 			
@@ -73,27 +76,27 @@ public class CartItemService {
 			cartItemRepo.save(cartItem);
 			System.out.println("Product Item Added Into Cart");
 		}
-			return cartItem;
+			return "Item Added into Cart Successfully";
 	}
 
 	public CartItem getCartItems(Long userId, Long productId) {
-		// TODO Auto-generated method stub
+		
 		Optional<CartItem> c = cartItemRepo.findByUser_UserIdAndProduct_ProductId(userId, productId);
 		if(!c.isPresent()) {
-			throw new UserNotFoundException("User with respective Product Not Found");
+			throw new UserNotFoundException("User with respective Product Not Found In Cart");
 		}
 			CartItem cartItem = c.get();
 		return cartItem;
 	}
 
-	public String deleteItem(Long userId, Long productId) {
-		// TODO Auto-generated method stub
+	@Transactional
+	public String deleteUserAndProduct(Long userId, Long productId) {
+		
 		Optional<CartItem> c = cartItemRepo.findByUser_UserIdAndProduct_ProductId(userId, productId);
 		if (!c.isPresent()) {
 		    throw new ProductNotFoundException("No Items Found For That Product ID and User ID to Delete");
 		}
-		Long cartItem = c.get().getCartItemId();
-		cartItemRepo.deleteById(cartItem);
+		cartItemRepo.deleteByUser_UserIdAndProduct_ProductId(userId, productId);
 		return "Item Deleted From the cart";
 	}
 
@@ -103,12 +106,39 @@ public class CartItemService {
 	}
 
 	public List<CartItem> getItemsByUserId(Long userId) {
-		// TODO Auto-generated method stub
+		
 		List<CartItem> cartItems = cartItemRepo.findByUser_UserId(userId);
 		if(cartItems.isEmpty()) {
 			throw new UserNotFoundException("User Not Found");
 		}
 		return cartItems;
+	}
+
+	public String updateQuantity(Long userId, Long productId, int newQuantity) {
+		
+		Optional<CartItem> c = cartItemRepo.findByUser_UserIdAndProduct_ProductId(userId, productId);
+		Optional<Product> p = productRepo.findById(productId);
+		
+		if(!c.isPresent()) {
+			
+			throw new ProductNotFoundException("No Product Found ");
+		}
+		CartItem cartItem = c.get();
+		Product product = p.get();
+		cartItem.setProductQuantity(newQuantity);
+		cartItem.setTotalPrice(newQuantity*product.getProductPrice());
+		cartItemRepo.save(cartItem);
+		return "Quantity Updated Successfully";
+	}
+
+	public String deleteAllbyUserId(Long userId) {
+		List<CartItem> c= cartItemRepo.findByUser_UserId(userId);
+		
+		if(!c.isEmpty()) {
+			throw new UserNotFoundException("User Not Found");
+		}
+		cartItemRepo.deleteAllByUser_UserId(userId);
+		return "User "+userId+" Related Items Deleted From Cart Successfully";
 	}
 
 }

@@ -1,4 +1,4 @@
-package com.example.Entity;
+package com.example.model;
 
 import java.util.List;
 
@@ -20,8 +20,15 @@ public class User {
 	private String shippingAddress;
 	private String paymentDetails;
 
-	private String role; // for future purpose to check whether the user is admin or noraml user
+	private String userType; // for future purpose to check whether the user is admin or noraml user
 	
+	public String getUserType() {
+		return userType;
+	}
+
+	public void setUserType(String userType) {
+		this.userType = userType;
+	}
 	@OneToMany(mappedBy = "user")
 	private List<CartItem> cartItems;
 

@@ -1,4 +1,4 @@
-package com.example.Service;
+package com.example.service;
 
 import java.util.List;
 import java.util.Optional;
@@ -6,19 +6,22 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.Entity.CartItem;
-import com.example.Entity.OrderProduct;
-import com.example.Entity.Product;
-import com.example.Entity.User;
-import com.example.Repository.CartItemRepo;
-import com.example.Repository.OrderRepo;
-import com.example.Repository.ProductRepo;
-import com.example.Repository.UserRepo;
+import com.example.exceptionfile.CustomException;
 import com.example.exceptionfile.ProductNotFoundException;
 import com.example.exceptionfile.UserNotFoundException;
+import com.example.model.CartItem;
+import com.example.model.OrderProduct;
+import com.example.model.Product;
+import com.example.model.User;
+import com.example.repo.CartItemRepo;
+import com.example.repo.OrderRepo;
+import com.example.repo.ProductRepo;
+import com.example.repo.UserRepo;
+
+import jakarta.transaction.Transactional;
 
 @Service
-public class OrderService {
+public class OrderServiceImpl implements OrderService{
 	
 	
 	public OrderRepo orderRepo;
@@ -26,28 +29,26 @@ public class OrderService {
 	private ProductRepo productRepo;
 	private CartItemRepo cartItemRepo;
 	
-	public OrderService(UserRepo userRepo, CartItemRepo cartItemRepo, ProductRepo productRepo, OrderRepo orderRepo) {
+	public OrderServiceImpl(UserRepo userRepo, CartItemRepo cartItemRepo, ProductRepo productRepo, OrderRepo orderRepo) {
 		this.userRepo = userRepo;
 		this.cartItemRepo = cartItemRepo;
 		this.productRepo = productRepo;
 		this.orderRepo = orderRepo;
 	}
-	
 
 	public String placeOrder(Long userId, Long productId) {
 
 	    Optional<User> findUser = userRepo.findById(userId);
 	    Optional<Product> findProduct = productRepo.findById(productId);
 	    Optional<CartItem> cart = cartItemRepo.findByUser_UserIdAndProduct_ProductId(userId, productId);
-
+	    
+	    
 	    if (!findUser.isPresent()) {
 	        throw new UserNotFoundException("User Not Found");
 	    }
-	    
 	    if (!findProduct.isPresent()) {
 	        throw new ProductNotFoundException("Product Not Available");
 	    }
-
 	    if (!cart.isPresent()) {
 	        throw new ProductNotFoundException("Please Add Product into Cart to place Order");
 	    }else {
@@ -59,14 +60,15 @@ public class OrderService {
 	 	    orderProduct.setUser(user);
 	 	    orderProduct.setShippingAddress(user.getShippingAddress());
 	 	    orderProduct.setTotalPrice(cartItem.getTotalPrice());
+	 	    orderProduct.setOrderQuantity(cartItem.getProductQuantity());
 	 	    orderProduct.setOrderStatus("Order Placed");
 	 	    orderProduct.setPaymentStatus("Payment Done");
-
+	 	    product.setProductQuantity(product.getProductQuantity()-cartItem.getProductQuantity());
 	 	    orderRepo.save(orderProduct);
 	 	    cartItemRepo.delete(cartItem);
 	    }
-	   
-	    return "OrderPlaced";
+	    
+	    return "Order Placed Successfully";
 	}
 
 	public List<OrderProduct> getOrderByUser(Long userId) {
@@ -78,6 +80,39 @@ public class OrderService {
 		}
 		
 		return o;
+	}
+
+	@Transactional
+	public String cancelOrder(Long userId, Long productId) {
+		
+		Optional<OrderProduct> o = orderRepo.findByUser_UserIdAndProduct_ProductId(userId, productId);
+		
+		Optional<Product> p = productRepo.findById(productId);
+		
+		if(!o.isPresent()) {
+			throw new ProductNotFoundException("Product "+productId+" Not Placed By User "+userId);
+		}
+		orderRepo.deleteByUser_UserIdAndProduct_ProductId(userId, productId);
+		
+		OrderProduct order = o.get();
+		Product product = p.get();
+		product.setProductQuantity(product.getProductQuantity()+order.getOrderQuantity());
+		
+		return "Order Cancelled Successfully";
+	}
+
+	public List<OrderProduct> getByUserIdAndProductId(Long userId, Long productId) {
+		
+		List<OrderProduct> o = orderRepo.findAllByUser_UserIdAndProduct_ProductId(userId, productId);
+		
+		if(o.isEmpty()) {
+			throw new CustomException("Order Not Found With This UserID "+userId+" and ProductID "+productId);
+		}
+		return o;
+	}
+
+	public List<OrderProduct> getAllOrders(OrderProduct orderproduct) {
+		return orderRepo.findAll();
 	}
 
 }

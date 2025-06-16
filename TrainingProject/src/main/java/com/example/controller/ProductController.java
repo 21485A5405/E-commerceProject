@@ -1,4 +1,4 @@
-package com.example.Controller;
+package com.example.controller;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.Entity.Product;
-import com.example.Service.ProductService;
+import com.example.model.Product;
+import com.example.service.ProductService;
 
 @RestController
 @RequestMapping("/products")
@@ -32,10 +32,10 @@ public class ProductController {
 	}
 	
 	@PutMapping("/update/{productId}")
-	public ResponseEntity<String> updateProductById(@PathVariable Long productId, @RequestBody Product product) {
+	public String updateProductById(@PathVariable Long productId, @RequestBody Product product) {
 		
 		String message = productService.productUpdate(productId, product);
-		return ResponseEntity.ok(message);
+		return message;
 		
 	}
 	
@@ -47,7 +47,7 @@ public class ProductController {
 	
 	@DeleteMapping("/deletebyid/{productId}")
 	public String deleteById(@PathVariable Long productId) {
-		
+		 
 		String message = productService.deleteById(productId);
 		return message;
 	}
@@ -58,11 +58,17 @@ public class ProductController {
 		return productService.getProductByCategory(category);
 	}
 	
-	@GetMapping("/getallproducts")
+	@GetMapping("/getall")
 	public List<Product> displayAllProducts(Product product) {
-		
+		 
 		return productService.displayAllProducts(product);
 	}
+	
+	@GetMapping("/getproductbyrange/{category}/{minPrice}/{maxPrice}")
+	public List<Product> getProductByPrice(@PathVariable String category, @PathVariable double minPrice, @PathVariable double maxPrice) {
+		return productService.getProductBetweenPrice(category, minPrice, maxPrice);
+	}
+	
 	
 		
 }
