@@ -2,7 +2,11 @@ package com.example.service;
 
 import java.util.List;
 
+import org.springframework.data.jpa.repository.Modifying;
+
 import com.example.model.CartItem;
+
+import jakarta.transaction.Transactional;
 
 public interface CartItemService {
 	
@@ -18,6 +22,8 @@ public interface CartItemService {
 
 	public String updateQuantity(Long userId, Long productId, int newQuantity);
 
+	@Transactional
+	@Modifying
 	public String deleteAllbyUserId(Long userId);
 
 

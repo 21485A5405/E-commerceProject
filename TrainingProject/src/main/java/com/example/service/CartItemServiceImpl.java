@@ -131,10 +131,11 @@ public class CartItemServiceImpl implements CartItemService{
 		return "Quantity Updated Successfully";
 	}
 
+	@Transactional
 	public String deleteAllbyUserId(Long userId) {
 		List<CartItem> c= cartItemRepo.findByUser_UserId(userId);
 		
-		if(!c.isEmpty()) {
+		if(c.isEmpty()) {
 			throw new UserNotFoundException("User Not Found");
 		}
 		cartItemRepo.deleteAllByUser_UserId(userId);

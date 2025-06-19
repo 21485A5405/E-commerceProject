@@ -30,7 +30,8 @@ public interface OrderRepo extends JpaRepository<OrderProduct, Long>{
 	@Modifying
 	void deleteByUser_UserIdAndProduct_ProductId(Long userId, Long productId);
 	
-	List<OrderProduct> findAllByOrderStatus(String status);
+	List<OrderProduct> findAllByOrderStatusIgnoreCase(String status);
 	
-	List<OrderProduct> findAllByPaymentStatus(String status);
+	List<OrderProduct> findAllByPaymentStatusIgnoreCase(String paymentStatus);
+
 }

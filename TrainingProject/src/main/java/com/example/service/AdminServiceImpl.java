@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import com.example.exceptionfile.AdminNotFoundException;
 import com.example.exceptionfile.UserNotFoundException;
 import com.example.model.Admin;
+import com.example.model.Product;
 import com.example.model.User;
 import com.example.repo.AdminRepo;
 import com.example.repo.ProductRepo;
@@ -94,6 +95,15 @@ public class AdminServiceImpl implements AdminService{
 
 	public List<Long> getAllProductIds() {
 		return productRepo.getAllProductIds();
+	}
+
+	public List<User> getAllUsers() {
+		
+		return userRepo.findAll();
+	}
+
+	public List<Product> getAllProducts() {
+		return productRepo.findAll();
 	}
 
 	

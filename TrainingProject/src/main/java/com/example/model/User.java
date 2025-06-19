@@ -64,7 +64,7 @@ public class User {
 		return userPassword;
 	}
 	public void setUserPassword(String userPassword) {
-	    this.userPassword = new BCryptPasswordEncoder().encode(userPassword);
+	    this.userPassword =userPassword;
 	}
 	public String getShippingAddress() {
 		return shippingAddress;

@@ -22,9 +22,6 @@ public interface UserService {
 
 	public String changeUserPassword(String eMail, String newPassword);
 
-	public String registerUser(User user);
-
-	public String loginUser(LoginDetails userDetails);
 
 
 	

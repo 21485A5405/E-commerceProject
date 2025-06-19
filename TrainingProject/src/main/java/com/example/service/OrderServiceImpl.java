@@ -117,7 +117,7 @@ public class OrderServiceImpl implements OrderService{
 
 	public List<OrderProduct> getOrderStatus(String status) {
 		
-		List<OrderProduct> orders = orderRepo.findAllByOrderStatus(status);
+		List<OrderProduct> orders = orderRepo.findAllByOrderStatusIgnoreCase(status);
 		if(orders.isEmpty()) {
 			throw new CustomException("No Order Found");
 		}
@@ -126,7 +126,7 @@ public class OrderServiceImpl implements OrderService{
 
 	public List<OrderProduct> getOrderByPayment(String paymentStatus) {
 		
-		List<OrderProduct> o = orderRepo.findAllByPaymentStatus(paymentStatus);
+		List<OrderProduct> o = orderRepo.findAllByPaymentStatusIgnoreCase(paymentStatus);
 		
 		if(o.isEmpty()) {
 			throw new CustomException("No Orders Found With "+paymentStatus);

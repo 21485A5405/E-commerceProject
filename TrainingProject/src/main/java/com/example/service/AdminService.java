@@ -3,9 +3,9 @@ package com.example.service;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.data.jpa.repository.Query;
-
 import com.example.model.Admin;
+import com.example.model.Product;
+import com.example.model.User;
 
 public interface AdminService {
 	
@@ -22,5 +22,9 @@ public interface AdminService {
 	 List<Long> getAllUserIds();
 
 	public List<Long> getAllProductIds();
+
+	public List<User> getAllUsers();
+
+	public List<Product> getAllProducts();
 
 }
