@@ -3,7 +3,6 @@ package com.example.controller;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,8 +20,12 @@ import com.example.service.AdminService;
 @RequestMapping("/admins")
 public class AdminController {
 	
-	@Autowired
+
 	private AdminService adminService;
+	
+	public AdminController(AdminService adminService) {
+		this.adminService = adminService;
+	}
 	
 	
 	@PostMapping("/addadmin")
@@ -37,9 +40,19 @@ public class AdminController {
 		return adminService.getAdminById(adminId);
 	}
 	
-	@GetMapping("/getall")
-	public List<Admin> getAdmin(@RequestBody Admin admin) {
-		return adminService.getAllAdmins(admin);
+	@GetMapping("/getalladmins")
+	public List<Admin> getAdmin() {
+		return adminService.getAllAdmins();
+	}
+	
+	@GetMapping("/getallusers")
+	public List<Long> getUsers() {
+		return adminService.getAllUserIds();
+	}
+	
+	@GetMapping("/getallproducts")
+	public List<Long> getProducts() {
+		return adminService.getAllProductIds();
 	}
 	@PutMapping("/updateadmin/{adminId}")
 	public String updateAdmin(@PathVariable Long adminId, @RequestBody Admin newAdmin) {

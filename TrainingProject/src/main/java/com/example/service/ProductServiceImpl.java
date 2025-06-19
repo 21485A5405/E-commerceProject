@@ -13,8 +13,12 @@ import com.example.repo.ProductRepo;
 @Service
 public class ProductServiceImpl implements ProductService{
 	
-	@Autowired
+
 	private ProductRepo productRepo;
+	
+	public ProductServiceImpl(ProductRepo productRepo) {
+		this.productRepo = productRepo;
+	}
 
 	public Product saveProduct(Product product) {
 		
@@ -99,7 +103,7 @@ public class ProductServiceImpl implements ProductService{
 	}
 
 
-	public List<Product> displayAllProducts(Product product) {
+	public List<Product> displayAllProducts() {
 		
 		return productRepo.findAll();
 	}

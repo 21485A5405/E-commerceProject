@@ -100,7 +100,7 @@ public class CartItemServiceImpl implements CartItemService{
 		return "Item Deleted From the cart";
 	}
 
-	public List<CartItem> getAllCartItems(CartItem cartItem) {
+	public List<CartItem> getAllCartItems() {
 		
 		return cartItemRepo.findAll();
 	}

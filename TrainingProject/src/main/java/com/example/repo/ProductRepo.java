@@ -2,6 +2,7 @@ package com.example.repo;
 
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.example.model.Product;
@@ -15,4 +16,6 @@ public interface ProductRepo extends JpaRepository<Product, Long>{
 	
 	List<Product> findByProductCategoryAndProductPriceBetween(String category, double minPrice, double maxPrice);
 
+	@Query("select p.productId from Product p")
+	List<Long> getAllProductIds();
 }

@@ -17,7 +17,7 @@ public interface ProductService {
 	
 	public List<Product> getProductByCategory(String category);
 
-	public List<Product> displayAllProducts(Product product);
+	public List<Product> displayAllProducts();
 
 	public List<Product> getProductBetweenPrice(String category, double minPrice, double maxPrice);
 

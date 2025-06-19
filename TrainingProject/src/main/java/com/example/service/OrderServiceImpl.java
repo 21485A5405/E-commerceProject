@@ -110,9 +110,28 @@ public class OrderServiceImpl implements OrderService{
 		}
 		return o;
 	}
-
-	public List<OrderProduct> getAllOrders(OrderProduct orderproduct) {
+	
+	public List<OrderProduct> getAllOrders() {
 		return orderRepo.findAll();
+	}
+
+	public List<OrderProduct> getOrderStatus(String status) {
+		
+		List<OrderProduct> orders = orderRepo.findAllByOrderStatus(status);
+		if(orders.isEmpty()) {
+			throw new CustomException("No Order Found");
+		}
+		return orders;
+	}
+
+	public List<OrderProduct> getOrderByPayment(String paymentStatus) {
+		
+		List<OrderProduct> o = orderRepo.findAllByPaymentStatus(paymentStatus);
+		
+		if(o.isEmpty()) {
+			throw new CustomException("No Orders Found With "+paymentStatus);
+		}
+		return o;
 	}
 
 }

@@ -3,7 +3,6 @@ package com.example.controller;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,8 +19,11 @@ import com.example.service.UserService;
 @RequestMapping("/users")
 public class UserController {
 	
-	@Autowired
 	private UserService userService;
+	
+	public UserController(UserService userService) {
+		this.userService = userService;
+	}
 	
 	@PostMapping("/adduser")
 	public User createUser(@RequestBody User user) {
@@ -35,8 +37,8 @@ public class UserController {
 	}
 	
 	@GetMapping("/getall")
-	public List<User> getAll(User user) {
-		return userService.getAllUsers(user);
+	public List<User> getAll() {
+		return userService.getAllUsers();
 	}
 	
 	@PutMapping("/update/{userId}")

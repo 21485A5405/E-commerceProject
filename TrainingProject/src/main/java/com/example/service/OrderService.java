@@ -14,7 +14,11 @@ public interface OrderService {
 
 	public List<OrderProduct> getByUserIdAndProductId(Long userId, Long productId);
 
-	public List<OrderProduct> getAllOrders(OrderProduct orderproduct);
+	public List<OrderProduct> getAllOrders();
+
+	public List<OrderProduct> getOrderStatus(String status);
+
+	public List<OrderProduct> getOrderByPayment(String paymentStatus);
 	
 
 }

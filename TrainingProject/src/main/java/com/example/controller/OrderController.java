@@ -2,7 +2,6 @@ package com.example.controller;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,14 +11,16 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.model.OrderProduct;
 import com.example.service.OrderService;
-import com.mysql.cj.x.protobuf.MysqlxCrud.Order;
 
 @RestController
 @RequestMapping("/orders")
 public class OrderController {
 	
-	@Autowired
-	private OrderService orderService;	
+	private OrderService orderService;
+	
+	public OrderController(OrderService orderService) {
+		this.orderService = orderService;
+	}
 	
 
 	@PostMapping("/placeorder/{userId}/{productId}")
@@ -40,9 +41,19 @@ public class OrderController {
 		return orderService.getByUserIdAndProductId(userId, productId);
 	}
 	
+	@GetMapping("/getorderstatus/{status}")
+	public List<OrderProduct> getOrders(@PathVariable String status) {
+		return orderService.getOrderStatus(status);
+	}
+	
+	@GetMapping("/getbypayment{paymentStatus}")
+	public List<OrderProduct> getOrder(String paymentStatus) {
+		return orderService.getOrderByPayment(paymentStatus);
+	}
+	
 	@GetMapping("/getall")
-	public List<OrderProduct> getAll(OrderProduct orderproduct) {
-		return orderService.getAllOrders(orderproduct);
+	public List<OrderProduct> getAll() {
+		return orderService.getAllOrders();
 	}
 	@DeleteMapping("/cancelorder/{userId}/{productId}")
 	public String cancelOrder(@PathVariable Long userId, @PathVariable Long productId) {

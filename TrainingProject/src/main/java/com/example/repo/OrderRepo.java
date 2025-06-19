@@ -29,4 +29,8 @@ public interface OrderRepo extends JpaRepository<OrderProduct, Long>{
 	@Transactional
 	@Modifying
 	void deleteByUser_UserIdAndProduct_ProductId(Long userId, Long productId);
+	
+	List<OrderProduct> findAllByOrderStatus(String status);
+	
+	List<OrderProduct> findAllByPaymentStatus(String status);
 }

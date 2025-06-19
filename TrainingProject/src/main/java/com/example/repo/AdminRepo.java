@@ -9,5 +9,6 @@ import com.example.model.Admin;
 public interface AdminRepo extends JpaRepository<Admin, Long>{
 	
 	
+	
 
 }

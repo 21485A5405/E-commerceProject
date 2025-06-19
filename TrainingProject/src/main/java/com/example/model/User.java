@@ -1,7 +1,7 @@
 package com.example.model;
 
 import java.util.List;
-
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -20,7 +20,7 @@ public class User {
 	private String shippingAddress;
 	private String paymentDetails;
 
-	private String userType; // for future purpose to check whether the user is admin or noraml user
+	private String userType; 
 	
 	public String getUserType() {
 		return userType;
@@ -64,7 +64,7 @@ public class User {
 		return userPassword;
 	}
 	public void setUserPassword(String userPassword) {
-		this.userPassword = userPassword;
+	    this.userPassword = new BCryptPasswordEncoder().encode(userPassword);
 	}
 	public String getShippingAddress() {
 		return shippingAddress;

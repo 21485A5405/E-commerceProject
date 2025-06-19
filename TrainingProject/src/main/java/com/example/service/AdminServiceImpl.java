@@ -9,14 +9,25 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.exceptionfile.AdminNotFoundException;
+import com.example.exceptionfile.UserNotFoundException;
 import com.example.model.Admin;
+import com.example.model.User;
 import com.example.repo.AdminRepo;
+import com.example.repo.ProductRepo;
+import com.example.repo.UserRepo;
 
 @Service
 public class AdminServiceImpl implements AdminService{
 	
-	@Autowired
 	private AdminRepo adminRepo;
+	private UserRepo userRepo;
+	private ProductRepo productRepo;
+	
+	public AdminServiceImpl(AdminRepo adminRepo, UserRepo userRepo, ProductRepo productRepo) {
+		this.adminRepo = adminRepo;
+		this.userRepo = userRepo;
+		this.productRepo = productRepo;
+	}
 	
 	public Admin createAdmin(Admin admin) {
 		return adminRepo.save(admin);
@@ -71,8 +82,18 @@ public class AdminServiceImpl implements AdminService{
 		return "Admin Deleted Successfully";
 	}
 
-	public List<Admin> getAllAdmins(Admin admin) {
+	public List<Admin> getAllAdmins() {
 		return adminRepo.findAll();
+	}
+
+	 public List<Long> getAllUserIds() {
+		 
+		 return userRepo.getAllUserIds();
+		 
+	 }
+
+	public List<Long> getAllProductIds() {
+		return productRepo.getAllProductIds();
 	}
 
 	

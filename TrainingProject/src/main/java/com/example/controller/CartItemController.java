@@ -46,9 +46,9 @@ public class CartItemController {
 	}
 	
 	@GetMapping("getall")
-	public List<CartItem> getAll(CartItem cartItem) {
+	public List<CartItem> getAll() {
 		
-		return cartItemService.getAllCartItems(cartItem);
+		return cartItemService.getAllCartItems();
 	}
 
 	@PutMapping("/updatecartquantity/{userId}/{productId}/{newQuantity}")

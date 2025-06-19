@@ -10,7 +10,7 @@ public interface CartItemService {
 	
 	public CartItem getCartItems(Long userId, Long productId);
 	
-	public List<CartItem> getAllCartItems(CartItem cartItem);
+	public List<CartItem> getAllCartItems();
 	
 	public String deleteUserAndProduct(Long userId, Long productId);
 	
