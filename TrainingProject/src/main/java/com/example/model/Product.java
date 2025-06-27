@@ -6,8 +6,12 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
 public class Product {
 	
 	@Id
@@ -32,20 +36,7 @@ public class Product {
     @JsonProperty("product_quantity")
     private int productQuantity;
     
-	
-	public Product() {
-		
-	}
-	public Product(Long productId, String productName, String productDescription, double productPrice,
-			String productCategory, String productImageURL) {
-		super();
-		this.productId = productId;
-		this.productName = productName;
-		this.productDescription = productDescription;
-		this.productPrice = productPrice;
-		this.productCategory = productCategory;
-		this.productImageURL = productImageURL;
-	}
+    
 	public Long getProductId() {
 		return productId;
 	}

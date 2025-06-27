@@ -1,56 +1,71 @@
 package com.example.model;
+import java.time.LocalDateTime;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
 public class OrderProduct {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long orderId;
 
     @ManyToOne
     @JoinColumn(name = "userId", nullable = false)
+    @JsonIgnore
     private User user;
 
-    @ManyToOne
-    @JoinColumn(name = "productId", nullable = false) 
-    private Product product;
-	
+    private LocalDateTime orderDate;
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderItem> orderItems;
+    
 	private double totalPrice;
 	
 	private String shippingAddress;
 	
-	private String paymentStatus;
+	@Enumerated(EnumType.STRING)
+	private PaymentStatus paymentStatus;
 	
-	private String orderStatus;
-	
-	private int orderQuantity;
-	
-	public int getOrderQuantity() {
-		return orderQuantity;
-	}
-
-	public void setOrderQuantity(int orderQuantity) {
-		this.orderQuantity = orderQuantity;
-	}
+	@Enumerated(EnumType.STRING)
+	private OrderStatus orderStatus;	
 
 	public OrderProduct() {
 		
 	}
 	
-	public Product getProduct() {
-		return product;
+	public LocalDateTime getOrderDate() {
+		return orderDate;
 	}
 
-	public void setProduct(Product product) {
-		this.product = product;
+	public void setOrderDate(LocalDateTime orderDate) {
+		this.orderDate = orderDate;
 	}
-	
+
+	public List<OrderItem> getItems() {
+		return orderItems;
+	}
+
+	public void setItems(List<OrderItem> orderItems) {
+		this.orderItems = orderItems;
+	}
+
 	public Long getOrderId() {
 		return orderId;
 	}
@@ -75,16 +90,16 @@ public class OrderProduct {
 	public void setShippingAddress(String shippingAddress) {
 		this.shippingAddress = shippingAddress;
 	}
-	public String getPaymentStatus() {
+	public PaymentStatus getPaymentStatus() {
 		return paymentStatus;
 	}
-	public void setPaymentStatus(String paymentStatus) {
+	public void setPaymentStatus(PaymentStatus paymentStatus) {
 		this.paymentStatus = paymentStatus;
 	}
-	public String getOrderStatus() {
+	public OrderStatus getOrderStatus() {
 		return orderStatus;
 	}
-	public void setOrderStatus(String orderStatus) {
+	public void setOrderStatus(OrderStatus orderStatus) {
 		this.orderStatus = orderStatus;
 	}
 	

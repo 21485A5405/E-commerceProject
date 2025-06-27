@@ -1,13 +1,13 @@
 package com.example.service;
-
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import com.example.exceptionfile.CustomException;
-import com.example.exceptionfile.ProductNotFoundException;
+import com.example.controller.ApiResponse;
+import com.example.exception.CustomException;
+import com.example.exception.ProductNotFoundException;
 import com.example.model.Product;
 import com.example.repo.ProductRepo;
 @Service
@@ -20,102 +20,112 @@ public class ProductServiceImpl implements ProductService{
 		this.productRepo = productRepo;
 	}
 
-	public Product saveProduct(Product product) {
-		
+	public ResponseEntity<ApiResponse<Product>> saveProduct(Product product) {
+				
 		if(product == null) {
 			throw new ProductNotFoundException("Product Cannot be Empty");
-			
 		}else if(product.getProductName() == null) {
-			
 			throw new ProductNotFoundException("Product Name Cannot be Null");
-			
 		}else if(product.getProductCategory() == null ) {
-			
 			throw new ProductNotFoundException("Product Category Cannot Null");
-			
 		}else if(product.getProductImageURL() == null) {
-			
 			throw new ProductNotFoundException("Product ImageURL Cannot be Null");
-			
 		}else if(product.getProductPrice() <= 0.0) {
-			
 			throw new ProductNotFoundException("Product Price Canot Less than Zero");
-			
 		}else if(product.getProductDescription() == null) {
-			
 			throw new ProductNotFoundException("Product Description Cannot be Empty");
-			
 		}else if(product.getProductQuantity() <= 0) {
-			
 			throw new ProductNotFoundException("Product Quantity cannot be less than 0");
 		}
-		return productRepo.save(product);
+		productRepo.save(product);
+		ApiResponse<Product> response = new ApiResponse<>();
+		response.setData(product);
+		response.setMessage("New Product Added Successfully");
+	
+	return ResponseEntity.ok(response);
 	}
 
-	public String productUpdate(Long productId, Product product) {
-		// TODO Auto-generated method stub
+	public ResponseEntity<ApiResponse<Product>> productUpdate(Long productId, Product newProduct) {
 		
 		Optional<Product> exists= productRepo.findById(productId);
 		
 		if(!exists.isPresent()) {
 			throw new ProductNotFoundException("Product Not Found");
-		}else {
+		}	
+			Product product = exists.get();
+			product.setProductName(newProduct.getProductName());
+			product.setProductPrice(newProduct.getProductPrice());
+			product.setProductQuantity(newProduct.getProductQuantity());
+			product.setProductCategory(newProduct.getProductCategory());
 			
-			Product p = exists.get();
-			p.setProductName(product.getProductName());
-			p.setProductPrice(product.getProductPrice());
-			p.setProductQuantity(product.getProductQuantity());
-			p.setProductCategory(product.getProductCategory());
-			
-			productRepo.save(p);
+			productRepo.save(product);
+			ApiResponse<Product> response = new ApiResponse<>();
+			response.setData(product);
+			response.setMessage("Product Updated Successfully");
+		
+		return ResponseEntity.ok(response);
+	}
+
+	public ResponseEntity<ApiResponse<Product>> getProductById(Long productId) {
+		
+		Optional<Product> exists = productRepo.findById(productId);
+		if(!exists.isPresent()) {
+			throw new ProductNotFoundException("Product Not Found");
 		}
-		
-		return "Product Updated Successfully";
+		ApiResponse<Product> response = new ApiResponse<>();
+		Product product = exists.get();
+		response.setData(product);
+		response.setMessage("Product "+productId+" Details");
+		return ResponseEntity.ok(response);
 	}
 
-	public Optional<Product> getProductById(Long productId) {
+	public ResponseEntity<ApiResponse<Product>> deleteById(Long productId) {
 		
-		return productRepo.findById(productId);
-	}
-
-
-	public String deleteById(Long productId) {
-		
-		Optional<Product> p = productRepo.findById(productId);
-		if(!p.isPresent()) {
+		Optional<Product> exists = productRepo.findById(productId);
+		if(!exists.isPresent()) {
 			throw new ProductNotFoundException("Product Not Found");
 			
-		}else {
+		}
 			productRepo.deleteById(productId);
+			Product product = exists.get();
+			ApiResponse<Product> response = new ApiResponse<>();
+			response.setData(product);
+			response.setMessage("Product Deleted Successfully");
+			return ResponseEntity.ok(response);
+	}
+
+	public ResponseEntity<ApiResponse<List<Product>>> getProductByCategory(String category) {
+		
+		List<Product> exists = productRepo.findByProductCategory(category);	
+		if(exists.isEmpty()) {
+			throw new ProductNotFoundException("No Product Found Under the Category "+category);
 		}
-		return "Product Deleted Successfully";
+		ApiResponse<List<Product>> response = new ApiResponse<>();
+		response.setData(exists);
+		response.setMessage("Product Details");
+		return ResponseEntity.ok(response);
 	}
 
-
-	public List<Product> getProductByCategory(String category) {
+	public ResponseEntity<ApiResponse<List<Product>>> displayAllProducts() {	
+		List<Product> products = productRepo.findAll();
 		
-		List<Product> p = productRepo.findByProductCategory(category);
-		
-		if(p.isEmpty()) {
-			throw new ProductNotFoundException("No Product Found Under that Category");
-		}
-		return p;
+		ApiResponse<List<Product>> response = new ApiResponse<>();
+		response.setData(products);
+		response.setMessage("All Product Details");
+		return ResponseEntity.ok(response);
 	}
 
-
-	public List<Product> displayAllProducts() {
+	public ResponseEntity<ApiResponse<List<Product>>> getProductBetweenPrice(String category, double minPrice, double maxPrice) {
 		
-		return productRepo.findAll();
-	}
-
-	public List<Product> getProductBetweenPrice(String category, double minPrice, double maxPrice) {
+		List<Product> products = productRepo.findProductsByPriceRange(category, minPrice, maxPrice);
 		
-		List<Product> p = productRepo.findByProductCategoryAndProductPriceBetween(category, minPrice, maxPrice);
-		
-		if(p.isEmpty()) {
+		if(products.isEmpty()) {
 			throw new CustomException("No Items Found Between That PriceRange");
 		}
-		return p;
+		ApiResponse<List<Product>> response = new ApiResponse<>();
+		response.setData(products);
+		response.setMessage("Products Between "+minPrice+" And "+maxPrice);
+		return ResponseEntity.ok(response);
 	}
 
 }

@@ -1,8 +1,7 @@
 package com.example.controller;
 
 import java.util.List;
-import java.util.Optional;
-
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,49 +26,39 @@ public class ProductController {
 	}
 
 	@PostMapping("/addproduct")
-	public Product addProduct(@RequestBody Product product) {
-		
+	public ResponseEntity<ApiResponse<Product>> addProduct(@RequestBody Product product) {		
 		return productService.saveProduct(product);
 	}
 	
 	@PutMapping("/update/{productId}")
-	public String updateProductById(@PathVariable Long productId, @RequestBody Product product) {
+	public ResponseEntity<ApiResponse<Product>> updateProductById(@PathVariable Long productId, @RequestBody Product product) {
+		return productService.productUpdate(productId, product);
 		
-		String message = productService.productUpdate(productId, product);
-		return message;
 		
 	}
 	
-	@GetMapping("/getproductbyid/{productId}")
-	public Optional<Product> getById(@PathVariable Long productId) {
-		
+	@GetMapping("/get-product-by-id/{productId}")
+	public ResponseEntity<ApiResponse<Product>> getById(@PathVariable Long productId) {		
 		return productService.getProductById(productId);
 	}
 	
-	@DeleteMapping("/deletebyid/{productId}")
-	public String deleteById(@PathVariable Long productId) {
-		 
-		String message = productService.deleteById(productId);
-		return message;
+	@DeleteMapping("/delete-by-id/{productId}")
+	public ResponseEntity<ApiResponse<Product>> deleteById(@PathVariable Long productId) {
+		return productService.deleteById(productId);
 	}
 	
-	@GetMapping("/getproductbycategory/{category}")
-	public List<Product> getProductByCategory(@PathVariable String category) {
-		
+	@GetMapping("/get-product-by-category/{category}")
+	public ResponseEntity<ApiResponse<List<Product>>> getProductByCategory(@PathVariable String category) {
 		return productService.getProductByCategory(category);
 	}
 	
 	@GetMapping("/getall")
-	public List<Product> displayAllProducts() {
-		 
+	public ResponseEntity<ApiResponse<List<Product>>> displayAllProducts() {	 
 		return productService.displayAllProducts();
 	}
 	
-	@GetMapping("/getproductbyrange/{category}/{minPrice}/{maxPrice}")
-	public List<Product> getProductByPrice(@PathVariable String category, @PathVariable double minPrice, @PathVariable double maxPrice) {
+	@GetMapping("/get-product-by-range/{category}/{minPrice}/{maxPrice}")
+	public ResponseEntity<ApiResponse<List<Product>>> getProductByPrice(@PathVariable String category, @PathVariable double minPrice, @PathVariable double maxPrice) {
 		return productService.getProductBetweenPrice(category, minPrice, maxPrice);
 	}
-	
-	
-		
 }

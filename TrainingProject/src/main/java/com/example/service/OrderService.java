@@ -2,23 +2,26 @@ package com.example.service;
 
 import java.util.List;
 
+import org.springframework.http.ResponseEntity;
+
+import com.example.controller.ApiResponse;
 import com.example.model.OrderProduct;
 
 public interface OrderService {
 	
-	public List<OrderProduct> getOrderByUser(Long userId);
+	public ResponseEntity<ApiResponse<List<OrderProduct>>> getOrderByUser(Long userId);
 	
-	public String placeOrder(Long userId, Long productId);
+	public ResponseEntity<ApiResponse<OrderProduct>> placeOrder(Long userId, Long productId, int quantity, Long addressId);
 
-	public String cancelOrder(Long userId, Long productId);
+	public ResponseEntity<ApiResponse<OrderProduct>> cancelOrder(Long userId, Long productId, int quantity);
 
-	public List<OrderProduct> getByUserIdAndProductId(Long userId, Long productId);
+	public ResponseEntity<ApiResponse<List<OrderProduct>>> getByUserIdAndProductId(Long userId, Long productId);
 
-	public List<OrderProduct> getAllOrders();
+	public ResponseEntity<ApiResponse<List<OrderProduct>>> getAllOrders();
 
-	public List<OrderProduct> getOrderStatus(String status);
+	public ResponseEntity<ApiResponse<List<OrderProduct>>> getOrderStatus(String status);
 
-	public List<OrderProduct> getOrderByPayment(String paymentStatus);
+	public ResponseEntity<ApiResponse<List<OrderProduct>>> getOrderByPayment(String paymentStatus);
 	
 
 }

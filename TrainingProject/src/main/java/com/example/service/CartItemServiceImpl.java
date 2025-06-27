@@ -3,11 +3,12 @@ package com.example.service;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-
-import com.example.exceptionfile.CustomException;
-import com.example.exceptionfile.ProductNotFoundException;
-import com.example.exceptionfile.UserNotFoundException;
+import com.example.controller.ApiResponse;
+import com.example.exception.CustomException;
+import com.example.exception.ProductNotFoundException;
+import com.example.exception.UserNotFoundException;
 import com.example.model.CartItem;
 import com.example.model.Product;
 import com.example.model.User;
@@ -19,7 +20,7 @@ import jakarta.transaction.Transactional;
 
 @Service
 public class CartItemServiceImpl implements CartItemService{
-	
+
 	private CartItemRepo cartItemRepo;
 	private ProductRepo productRepo;
 	private UserRepo userRepo;
@@ -31,13 +32,13 @@ public class CartItemServiceImpl implements CartItemService{
 		
 	}
 	
-	public String addProductToCart(Long userId,Long productId, int quantity) {
+	public ResponseEntity<ApiResponse<CartItem>> addProductToCart(Long userId,Long productId, int quantity) {
 		
 		Optional<Product> p = productRepo.findById(productId);
 		
 		Optional<User> u = userRepo.findById(userId);
 		
-		Optional<CartItem> itemExist = cartItemRepo.findByUser_UserIdAndProduct_ProductId(userId, productId);
+		Optional<CartItem> itemExist = cartItemRepo.findByUserAndProduct(userId, productId);
 		
 		if(!p.isPresent()) {
 			throw new ProductNotFoundException("Product Not Found/ Exists to Add Into Cart");
@@ -63,9 +64,12 @@ public class CartItemServiceImpl implements CartItemService{
 			cartItem.setProductQuantity(quantity+cartItem.getProductQuantity());
 			cartItem.setTotalPrice(cartItem.getProductQuantity()*product.getProductPrice());
 			cartItemRepo.save(cartItem);
+			ApiResponse<CartItem> response = new ApiResponse<>();
+			response.setData(cartItem);
+			response.setMessage("CartItems Updated Into Cart Successfully");
+			return ResponseEntity.ok(response);
 
 		}else {
-			
 			cartItem = new CartItem();
 			User user = u.get();			
 			cartItem.setUser(user);
@@ -74,52 +78,68 @@ public class CartItemServiceImpl implements CartItemService{
 			cartItem.setTotalPrice(quantity*product.getProductPrice());
 			
 			cartItemRepo.save(cartItem);
-			System.out.println("Product Item Added Into Cart");
+			ApiResponse<CartItem> response = new ApiResponse<>();
+			response.setData(cartItem);
+			response.setMessage("New Items Added Into Cart Successfully");
+			return ResponseEntity.ok(response);
 		}
-			return "Item Added into Cart Successfully";
 	}
 
-	public CartItem getCartItems(Long userId, Long productId) {
+	public ResponseEntity<ApiResponse<CartItem>> getCartItems(Long userId, Long productId) {
 		
-		Optional<CartItem> c = cartItemRepo.findByUser_UserIdAndProduct_ProductId(userId, productId);
+		Optional<CartItem> c = cartItemRepo.findByUserAndProduct(userId, productId);
 		if(!c.isPresent()) {
 			throw new UserNotFoundException("User with respective Product Not Found In Cart");
 		}
 			CartItem cartItem = c.get();
-		return cartItem;
+			ApiResponse<CartItem> response = new ApiResponse<>();
+			response.setData(cartItem);
+			response.setMessage("CartItem Details");
+			return ResponseEntity.ok(response);
 	}
 
 	@Transactional
-	public String deleteUserAndProduct(Long userId, Long productId) {
+	public ResponseEntity<ApiResponse<CartItem>> deleteUserAndProduct(Long userId, Long productId) {
 		
-		Optional<CartItem> c = cartItemRepo.findByUser_UserIdAndProduct_ProductId(userId, productId);
-		if (!c.isPresent()) {
+		Optional<CartItem> exists = cartItemRepo.findByUserAndProduct(userId, productId);
+		if (!exists.isPresent()) {
 		    throw new ProductNotFoundException("No Items Found For That Product ID and User ID to Delete");
 		}
-		cartItemRepo.deleteByUser_UserIdAndProduct_ProductId(userId, productId);
-		return "Item Deleted From the cart";
+		cartItemRepo.deleteByUserAndProduct(userId, productId);
+		CartItem cartItem = exists.get();
+		ApiResponse<CartItem> response = new ApiResponse<>();
+		response.setData(cartItem);
+		response.setMessage("Item Deleted From the cart");
+		return ResponseEntity.ok(response);
 	}
 
-	public List<CartItem> getAllCartItems() {
+	public ResponseEntity<ApiResponse<List<CartItem>>> getAllCartItems() {
 		
-		return cartItemRepo.findAll();
+		List<CartItem> cartItems = cartItemRepo.findAll();
+		ApiResponse<List<CartItem>> response = new ApiResponse<>();
+		response.setData(cartItems);
+		response.setMessage("CartItems List");
+		return ResponseEntity.ok(response);
 	}
 
-	public List<CartItem> getItemsByUserId(Long userId) {
+	public ResponseEntity<ApiResponse<List<CartItem>>> getItemsByUserId(Long userId) {
 		
-		List<CartItem> cartItems = cartItemRepo.findByUser_UserId(userId);
+		List<CartItem> cartItems = cartItemRepo.findByUserId(userId);
 		if(cartItems.isEmpty()) {
 			throw new UserNotFoundException("User Not Found");
 		}
-		return cartItems;
+		ApiResponse<List<CartItem>> response = new ApiResponse<>();
+		response.setData(cartItems);
+		response.setMessage("CartItem of User"+userId);
+		return ResponseEntity.ok(response);
 	}
 
-	public String updateQuantity(Long userId, Long productId, int newQuantity) {
+	public ResponseEntity<ApiResponse<CartItem>> updateQuantity(Long userId, Long productId, int newQuantity) {
 		
-		Optional<CartItem> c = cartItemRepo.findByUser_UserIdAndProduct_ProductId(userId, productId);
+		Optional<CartItem> c = cartItemRepo.findByUserAndProduct(userId, productId);
 		Optional<Product> p = productRepo.findById(productId);
 		
-		if(!c.isPresent()) {
+		if(!c.isPresent() || !p.isPresent()) {
 			
 			throw new ProductNotFoundException("No Product Found ");
 		}
@@ -128,18 +148,25 @@ public class CartItemServiceImpl implements CartItemService{
 		cartItem.setProductQuantity(newQuantity);
 		cartItem.setTotalPrice(newQuantity*product.getProductPrice());
 		cartItemRepo.save(cartItem);
-		return "Quantity Updated Successfully";
+		ApiResponse<CartItem> response = new ApiResponse<>();
+		response.setData(cartItem);
+		response.setMessage("Quantity Updated Successfully");
+		return ResponseEntity.ok(response);
 	}
 
 	@Transactional
-	public String deleteAllbyUserId(Long userId) {
-		List<CartItem> c= cartItemRepo.findByUser_UserId(userId);
+	public ResponseEntity<ApiResponse<List<CartItem>>> deleteAllbyUserId(Long userId) {
+		
+		List<CartItem> c= cartItemRepo.findByUserId(userId);
 		
 		if(c.isEmpty()) {
 			throw new UserNotFoundException("User Not Found");
 		}
-		cartItemRepo.deleteAllByUser_UserId(userId);
-		return "User "+userId+" Related Items Deleted From Cart Successfully";
+		cartItemRepo.deleteAllByUser(userId);
+		ApiResponse<List<CartItem>> response = new ApiResponse<>();
+		response.setData(c);
+		response.setMessage("User "+userId+" Related Items Deleted From Cart Successfully");
+		return ResponseEntity.ok(response);
 	}
 
 }

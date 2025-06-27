@@ -1,24 +1,26 @@
 package com.example.service;
 
 import java.util.List;
-import java.util.Optional;
 
+import org.springframework.http.ResponseEntity;
+
+import com.example.controller.ApiResponse;
 import com.example.model.Product;
 
 public interface ProductService {
 	
-	public Product saveProduct(Product product);
+	public ResponseEntity<ApiResponse<Product>> saveProduct(Product product);
 	
-	public String productUpdate(Long productId, Product product);
+	public ResponseEntity<ApiResponse<Product>> productUpdate(Long productId, Product product);
 	
-	public String deleteById(Long productId);
+	public ResponseEntity<ApiResponse<Product>> deleteById(Long productId);
 	
-	public Optional<Product> getProductById(Long productId);
+	public ResponseEntity<ApiResponse<Product>> getProductById(Long productId);
 	
-	public List<Product> getProductByCategory(String category);
+	public ResponseEntity<ApiResponse<List<Product>>> getProductByCategory(String category);
 
-	public List<Product> displayAllProducts();
+	public ResponseEntity<ApiResponse<List<Product>>> displayAllProducts();
 
-	public List<Product> getProductBetweenPrice(String category, double minPrice, double maxPrice);
+	public ResponseEntity<ApiResponse<List<Product>>> getProductBetweenPrice(String category, double minPrice, double maxPrice);
 
 }

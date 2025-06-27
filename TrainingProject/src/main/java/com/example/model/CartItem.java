@@ -7,8 +7,12 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
 public class CartItem {
 	
 	@Id
@@ -16,11 +20,11 @@ public class CartItem {
 	private Long cartItemId;
 
 	@ManyToOne
-	@JoinColumn(name = "user_id", nullable = false)
+	@JoinColumn(name = "userId", nullable = false)
 	private User user;
 
 	@ManyToOne
-	@JoinColumn(name = "product_id", nullable = false)
+	@JoinColumn(name = "productId", nullable = false)
 	private Product product;
 	
 	private int productQuantity;
@@ -54,7 +58,6 @@ public class CartItem {
 		return user;
 	}
 	public void setUser(User user) {
-		// TODO Auto-generated method stub
 		this.user = user;
 	}
 

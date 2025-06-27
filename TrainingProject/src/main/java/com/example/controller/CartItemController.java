@@ -2,6 +2,7 @@ package com.example.controller;
 
 import java.util.List;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,52 +25,40 @@ public class CartItemController {
 		this.cartItemService = cartItemService;	
 	}
 	
-	@PostMapping("/addtocart/{userId}/{productId}/{quantity}")
-	public String addToCart(@PathVariable Long userId, @PathVariable Long productId, @PathVariable int quantity) {
-
-		String message = cartItemService.addProductToCart(userId,productId, quantity);
-		return message;
+	@PostMapping("/add-to-cart/{userId}/{productId}/{quantity}")
+	public ResponseEntity<ApiResponse<CartItem>> addToCart(@PathVariable Long userId, @PathVariable Long productId, @PathVariable int quantity) {
+		return cartItemService.addProductToCart(userId,productId, quantity);
 		
 	}
 	
-	@GetMapping("/getbyuserandproduct/{userId}/{productId}")
-	public CartItem getCartItems(@PathVariable Long userId, @PathVariable Long productId) {
-		
+	@GetMapping("/get-by-user-and-product/{userId}/{productId}")
+	public ResponseEntity<ApiResponse<CartItem>> getCartItems(@PathVariable Long userId, @PathVariable Long productId) {
 		return cartItemService.getCartItems(userId, productId);
 		
 	}
 	
-	@GetMapping("/getallbyuser/{userId}")
-	public List<CartItem> getItemsByUserId(@PathVariable Long userId) {
-		
+	@GetMapping("/get-all-by-user/{userId}")
+	public ResponseEntity<ApiResponse<List<CartItem>>> getItemsByUserId(@PathVariable Long userId) {
 		return cartItemService.getItemsByUserId(userId);
 	}
 	
 	@GetMapping("getall")
-	public List<CartItem> getAll() {
-		
+	public ResponseEntity<ApiResponse<List<CartItem>>> getAll() {
 		return cartItemService.getAllCartItems();
 	}
 
-	@PutMapping("/updatecartquantity/{userId}/{productId}/{newQuantity}")
-	public String updateQuantityInCart(@PathVariable Long userId, @PathVariable Long productId, @PathVariable int newQuantity) {
-		
-		String message = cartItemService.updateQuantity(userId, productId, newQuantity);
-		return message;
+	@PutMapping("/update-cart-quantity/{userId}/{productId}/{newQuantity}")
+	public ResponseEntity<ApiResponse<CartItem>> updateQuantityInCart(@PathVariable Long userId, @PathVariable Long productId, @PathVariable int newQuantity) {
+		return cartItemService.updateQuantity(userId, productId, newQuantity);
 	}
 	
-	@DeleteMapping("/deleteallbyuserid/{userId}")
-	public String deleteitems(@PathVariable Long userId) {
-		
-		String message = cartItemService.deleteAllbyUserId(userId);
-		return message;
+	@DeleteMapping("/delete-all-by-userid/{userId}")
+	public ResponseEntity<ApiResponse<List<CartItem>>> deleteitems(@PathVariable Long userId) {
+		return cartItemService.deleteAllbyUserId(userId);
 	}
 	
-	@DeleteMapping("/deletecart/{userId}/{productId}")
-	public String deleteFromCart(@PathVariable Long userId, @PathVariable Long productId) {
-		
-		String message = cartItemService.deleteUserAndProduct(userId, productId);
-		return message;
+	@DeleteMapping("/delete-cart/{userId}/{productId}")
+	public ResponseEntity<ApiResponse<CartItem>> deleteFromCart(@PathVariable Long userId, @PathVariable Long productId) {
+		return cartItemService.deleteUserAndProduct(userId, productId);
 	}
-	
 }

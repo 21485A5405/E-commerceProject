@@ -1,14 +1,22 @@
 package com.example.model;
 
 import java.util.List;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
+import lombok.NoArgsConstructor;
 
 @Entity
+@NoArgsConstructor
 public class User {
 	
 	@Id
@@ -17,18 +25,16 @@ public class User {
 	private String userName;
 	private String userEmail;
 	private String userPassword;
-	private String shippingAddress;
-	private String paymentDetails;
+	
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<Address> shippingAddress;
+
+    @ElementCollection
+    @CollectionTable(name = "paymentDetails", joinColumns = @JoinColumn(name = "userId"))
+    private List<PaymentInfo> paymentDetails;
 
 	private String userType; 
 	
-	public String getUserType() {
-		return userType;
-	}
-
-	public void setUserType(String userType) {
-		this.userType = userType;
-	}
 	@OneToMany(mappedBy = "user")
 	private List<CartItem> cartItems;
 
@@ -54,10 +60,19 @@ public class User {
 	public void setUserEmail(String userEmail) {
 		this.userEmail = userEmail;
 	}	
-	public String getPaymentDetails() {
+	
+	public String getUserType() {
+		return userType;
+	}
+
+	public void setUserType(String userType) {
+		this.userType = userType;
+	}
+	
+	public List<PaymentInfo> getPaymentDetails() {
 		return paymentDetails;
 	}
-	public void setPaymentDetails(String paymentDetails) {
+	public void setPaymentDetails(List<PaymentInfo> paymentDetails) {
 		this.paymentDetails = paymentDetails;
 	}
 	public String getUserPassword() {
@@ -66,10 +81,10 @@ public class User {
 	public void setUserPassword(String userPassword) {
 	    this.userPassword =userPassword;
 	}
-	public String getShippingAddress() {
+	public List<Address> getShippingAddress() {
 		return shippingAddress;
 	}
-	public void setShippingAddress(String shippingAddress) {
+	public void setShippingAddress(List<Address> shippingAddress) {
 		this.shippingAddress = shippingAddress;
 	}
 	

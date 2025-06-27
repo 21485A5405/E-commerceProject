@@ -1,8 +1,7 @@
 package com.example.controller;
 
 import java.util.List;
-import java.util.Optional;
-
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.model.LoginDetails;
 import com.example.model.User;
 import com.example.service.UserService;
 
@@ -25,38 +25,38 @@ public class UserController {
 		this.userService = userService;
 	}
 	
-	@PostMapping("/adduser")
-	public User createUser(@RequestBody User user) {
+	@PostMapping("/register-user")
+	public ResponseEntity<ApiResponse<User>> createUser(@RequestBody User user) {
 		return userService.saveUser(user);
 	}
 	
-	@GetMapping("/getuserbyid/{userId}")
-	public Optional<User> getUser(@PathVariable Long userId) {
-		
+	@PostMapping("/user-login")
+	public ResponseEntity<ApiResponse<?>> loginUser(@RequestBody LoginDetails details) {
+		return userService.loginUser(details);
+	}
+	@GetMapping("/get-user-by-id/{userId}")
+	public ResponseEntity<ApiResponse<User>> getUser(@PathVariable Long userId) {
 		return userService.getUserById(userId);
 	}
 	
 	@GetMapping("/getall")
-	public List<User> getAll() {
+	public ResponseEntity<ApiResponse<List<User>>> getAll() {
 		return userService.getAllUsers();
 	}
 	
-	@PutMapping("/update/{userId}")
-	public String updateUser(@PathVariable Long userId, @RequestBody User user) {
-		
-		String message = userService.updateUserById(userId, user);
-		return message;
+	@PutMapping("/update-user/{userId}")
+	public ResponseEntity<ApiResponse<User>> updateUser(@PathVariable Long userId, @RequestBody User user) {
+		return userService.updateUserById(userId, user);
 	}
 	
-	@PutMapping("/changepassword/{eMail}/{newPassword}")
-	public String changePassword(@PathVariable String eMail, @PathVariable String newPassword) {
+	@PutMapping("/change-password/{eMail}/{newPassword}")
+	public ResponseEntity<ApiResponse<User>> changePassword(@PathVariable String eMail, @PathVariable String newPassword) {
 		return userService.changeUserPassword(eMail, newPassword);
 	}
 	
-	@DeleteMapping("/deleteuserbyid/{userId}")
-	public String deleteUser(@PathVariable Long userId) {
-		String message = userService.deleteUserById(userId);
-		return message;
+	@DeleteMapping("/delete-user-by-id/{userId}")
+	public ResponseEntity<ApiResponse<User>> deleteUser(@PathVariable Long userId) {
+		return userService.deleteUserById(userId);
+		
 	}
-
 }

@@ -3,28 +3,30 @@ package com.example.service;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.http.ResponseEntity;
 
+import com.example.controller.ApiResponse;
 import com.example.model.CartItem;
 
 import jakarta.transaction.Transactional;
 
 public interface CartItemService {
 	
-	public String addProductToCart(Long userId,Long productId, int quantity);
+	public ResponseEntity<ApiResponse<CartItem>> addProductToCart(Long userId,Long productId, int quantity);
 	
-	public CartItem getCartItems(Long userId, Long productId);
+	public ResponseEntity<ApiResponse<CartItem>> getCartItems(Long userId, Long productId);
 	
-	public List<CartItem> getAllCartItems();
+	public ResponseEntity<ApiResponse<List<CartItem>>> getAllCartItems();
 	
-	public String deleteUserAndProduct(Long userId, Long productId);
+	public ResponseEntity<ApiResponse<CartItem>> deleteUserAndProduct(Long userId, Long productId);
 	
-	public List<CartItem> getItemsByUserId(Long userId);
+	public ResponseEntity<ApiResponse<List<CartItem>>> getItemsByUserId(Long userId);
 
-	public String updateQuantity(Long userId, Long productId, int newQuantity);
+	public ResponseEntity<ApiResponse<CartItem>> updateQuantity(Long userId, Long productId, int newQuantity);
 
 	@Transactional
 	@Modifying
-	public String deleteAllbyUserId(Long userId);
+	public ResponseEntity<ApiResponse<List<CartItem>>> deleteAllbyUserId(Long userId);
 
 
 }

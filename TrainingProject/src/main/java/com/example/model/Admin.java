@@ -4,32 +4,26 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
 public class Admin {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long adminId;
 	private String adminName;
-	
 	private String adminRole;
 	private String adminPermissions;
 	
 	private String userType;
 	
-	public Admin() {
-		
-	}
-	
-	public Admin(long adminId, String adminName, String adminRole, String adminPermissions) {
-		super();
+	public void setAdminId(Long adminId) {
 		this.adminId = adminId;
-		this.adminName = adminName;
-		this.adminRole = adminRole;
-		this.adminPermissions = adminPermissions;
 	}
-
 
 	public long getAdminId() {
 		return adminId;
