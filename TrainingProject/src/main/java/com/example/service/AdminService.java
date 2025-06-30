@@ -4,7 +4,6 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 
 import com.example.controller.ApiResponse;
-import com.example.model.Admin;
 import com.example.model.LoginDetails;
 import com.example.model.OrderProduct;
 import com.example.model.Product;
@@ -12,15 +11,15 @@ import com.example.model.User;
 
 public interface AdminService {
 	
-	public ResponseEntity<ApiResponse<Admin>> createAdmin(Admin admin) ;
+	public ResponseEntity<ApiResponse<User>> createAdmin(User admin) ;
 
-	public ResponseEntity<ApiResponse<Admin>> getAdminById(Long adminId);
+	public ResponseEntity<ApiResponse<User>> getAdminById(Long adminId);
 
-	public ResponseEntity<Admin> updateAdminById(Long adminId, Admin newAdmin);
+	public ResponseEntity<User> updateAdminById(Long adminId, User newAdmin);
 
-	public ResponseEntity<ApiResponse<Admin>> deleteAdminById(Long adminId);
+	public ResponseEntity<ApiResponse<User>> deleteAdminById(Long adminId);
 
-	public ResponseEntity<ApiResponse<List<Admin>>> getAllAdmins();
+	public ResponseEntity<ApiResponse<List<User>>> getAllAdmins();
 
 	List<Long> getAllUserIds();
 	

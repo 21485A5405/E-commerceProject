@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.model.Admin;
 import com.example.model.LoginDetails;
 import com.example.model.OrderProduct;
 import com.example.model.Product;
@@ -33,18 +32,18 @@ public class AdminController {
 		this.orderService = orderService;
 	}
 	
-	@PostMapping("/add-admin")
-	public ResponseEntity<ApiResponse<Admin>> adminData(@RequestBody Admin admin) {
+	@PostMapping("/register-admin")
+	public ResponseEntity<ApiResponse<User>> adminData(@RequestBody User admin) {
 		return adminService.createAdmin(admin);
 	}
 	
 	@GetMapping("/get-admin-by-id/{adminId}")
-	public ResponseEntity<ApiResponse<Admin>> getAdmin(@PathVariable Long adminId) {
+	public ResponseEntity<ApiResponse<User>> getAdmin(@PathVariable Long adminId) {
 		return adminService.getAdminById(adminId);
 	}
 	
 	@GetMapping("/get-all-admins")
-	public ResponseEntity<ApiResponse<List<Admin>>> getAdmin() {
+	public ResponseEntity<ApiResponse<List<User>>> getAdmin() {
 		return adminService.getAllAdmins();
 	}
 	
@@ -68,12 +67,12 @@ public class AdminController {
 		return adminService.getAllProductIds();
 	}
 	@PutMapping("/update-admin/{adminId}")
-	public ResponseEntity<Admin> updateAdmin(@PathVariable Long adminId, @RequestBody Admin newAdmin) {
+	public ResponseEntity<User> updateAdmin(@PathVariable Long adminId, @RequestBody User newAdmin) {
 		return adminService.updateAdminById(adminId, newAdmin);
 	}
 
 	@DeleteMapping("/delete-admin-by-id/{adminId}")
-	public ResponseEntity<ApiResponse<Admin>> deleteAdmin(@PathVariable Long adminId) {
+	public ResponseEntity<ApiResponse<User>> deleteAdmin(@PathVariable Long adminId) {
 		return adminService.deleteAdminById(adminId);
 	}
 	
@@ -82,7 +81,7 @@ public class AdminController {
 		return orderService.getAllOrders();
 	}
 	
-	@PostMapping("/adminlogin")
+	@PostMapping("/login-admin")
 	public ResponseEntity<ApiResponse<?>> login(LoginDetails details) {
 		return adminService.loginAdmin(details);
 	}

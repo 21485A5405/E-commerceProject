@@ -20,13 +20,13 @@ public interface UserService {
 
 	public ResponseEntity<ApiResponse<User>> deleteUserById(Long userId);
 
-	public ResponseEntity<ApiResponse<List<User>>> getAllUsers();
+//	public ResponseEntity<ApiResponse<List<User>>> getAllUsers();
 
 	public ResponseEntity<ApiResponse<User>> changeUserPassword(String eMail, String newPassword);
 
 	public ResponseEntity<ApiResponse<?>> loginUser(LoginDetails details);
 
-
+//	public User validateUser(String token, Long userId);
 
 	
 

@@ -3,25 +3,50 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import com.example.authentication.CurrentUser;
 import com.example.controller.ApiResponse;
 import com.example.exception.CustomException;
 import com.example.exception.ProductNotFoundException;
+import com.example.exception.UnAuthorizedException;
+import com.example.exception.UserNotFoundException;
 import com.example.model.Product;
+import com.example.model.Role;
+import com.example.model.User;
 import com.example.repo.ProductRepo;
+import com.example.repo.UserRepo;
+
+import jakarta.transaction.Transactional;
+
 @Service
 public class ProductServiceImpl implements ProductService{
 	
 
 	private ProductRepo productRepo;
+	private UserRepo userRepo;
+	private CurrentUser currentUser;
 	
-	public ProductServiceImpl(ProductRepo productRepo) {
+	public ProductServiceImpl(ProductRepo productRepo, UserRepo userRepo, CurrentUser currentUser) {
 		this.productRepo = productRepo;
+		this.userRepo = userRepo;
+		this.currentUser = currentUser;
 	}
 
-	public ResponseEntity<ApiResponse<Product>> saveProduct(Product product) {
+	public ResponseEntity<ApiResponse<Product>> saveProduct(Product product, Long userId) {
 				
+		Optional<User> user = userRepo.findById(userId);
+		
+		if(!user.isPresent()) {
+			
+			throw new UserNotFoundException("User Not Found");
+		}
+		if (!user.get().getUserRole().equals(Role.ADMIN)) {
+		    throw new UnAuthorizedException("You Don't Have Authorization To Add Product");
+		}
+
 		if(product == null) {
 			throw new ProductNotFoundException("Product Cannot be Empty");
 		}else if(product.getProductName() == null) {
@@ -31,7 +56,7 @@ public class ProductServiceImpl implements ProductService{
 		}else if(product.getProductImageURL() == null) {
 			throw new ProductNotFoundException("Product ImageURL Cannot be Null");
 		}else if(product.getProductPrice() <= 0.0) {
-			throw new ProductNotFoundException("Product Price Canot Less than Zero");
+			throw new ProductNotFoundException("Product Price Canot be Less than Zero");
 		}else if(product.getProductDescription() == null) {
 			throw new ProductNotFoundException("Product Description Cannot be Empty");
 		}else if(product.getProductQuantity() <= 0) {
@@ -45,13 +70,20 @@ public class ProductServiceImpl implements ProductService{
 	return ResponseEntity.ok(response);
 	}
 
-	public ResponseEntity<ApiResponse<Product>> productUpdate(Long productId, Product newProduct) {
+	public ResponseEntity<ApiResponse<Product>> productUpdate(Long productId, Product newProduct, Long userId) {
 		
 		Optional<Product> exists= productRepo.findById(productId);
 		
 		if(!exists.isPresent()) {
 			throw new ProductNotFoundException("Product Not Found");
-		}	
+		}
+		
+		Optional<User> user = userRepo.findById(userId);
+		
+		if(!user.isPresent() || user.get().getUserRole() !=Role.ADMIN) {
+			throw new UnAuthorizedException("User Not Found / You Dont Have Authorization to Update Product");
+			
+		}
 			Product product = exists.get();
 			product.setProductName(newProduct.getProductName());
 			product.setProductPrice(newProduct.getProductPrice());
@@ -79,12 +111,23 @@ public class ProductServiceImpl implements ProductService{
 		return ResponseEntity.ok(response);
 	}
 
-	public ResponseEntity<ApiResponse<Product>> deleteById(Long productId) {
+	@PreAuthorize("hasRole('ADMIN')")
+	@Transactional
+	public ResponseEntity<ApiResponse<Product>> deleteById(Long productId, Long userId) {
 		
 		Optional<Product> exists = productRepo.findById(productId);
 		if(!exists.isPresent()) {
 			throw new ProductNotFoundException("Product Not Found");
 			
+		}
+		Optional<User> user = userRepo.findById(userId);
+		
+		if(!user.isPresent()) {
+			throw new UnAuthorizedException("User Not Found");
+		}
+		if(user.get().getUserRole() != Role.ADMIN) {
+			
+			throw new UnAuthorizedException("You Dont Have Authorization to Delete Product");
 		}
 			productRepo.deleteById(productId);
 			Product product = exists.get();

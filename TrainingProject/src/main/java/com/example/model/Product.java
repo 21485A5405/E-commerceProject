@@ -18,22 +18,16 @@ public class Product {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long productId;
 	
-	@JsonProperty("product_name")
     private String productName;
 
-    @JsonProperty("product_description")
     private String productDescription;
 
-    @JsonProperty("product_price")
     private double productPrice;
 
-    @JsonProperty("product_category")
     private String productCategory;
 
-    @JsonProperty("product_imageurl")
     private String productImageURL;
     
-    @JsonProperty("product_quantity")
     private int productQuantity;
     
     

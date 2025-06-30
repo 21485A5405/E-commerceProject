@@ -1,13 +1,14 @@
 package com.example.model;
 
 import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import java.util.Set;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -33,10 +34,31 @@ public class User {
     @CollectionTable(name = "paymentDetails", joinColumns = @JoinColumn(name = "userId"))
     private List<PaymentInfo> paymentDetails;
 
-	private String userType; 
+    @Enumerated(EnumType.STRING)
+    private Role userRole;
 	
 	@OneToMany(mappedBy = "user")
 	private List<CartItem> cartItems;
+	
+	@ElementCollection
+    @CollectionTable(name = "userPermissions", joinColumns = @JoinColumn(name = "userId"))
+	private Set<String> permissions;
+	
+	public List<CartItem> getCartItems() {
+		return cartItems;
+	}
+
+	public void setCartItems(List<CartItem> cartItems) {
+		this.cartItems = cartItems;
+	}
+
+	public Set<String> getPermissions() {
+		return permissions;
+	}
+
+	public void setPermissions(Set<String> permissions) {
+		this.permissions = permissions;
+	}
 
 	public User() {
 		
@@ -61,12 +83,12 @@ public class User {
 		this.userEmail = userEmail;
 	}	
 	
-	public String getUserType() {
-		return userType;
+	public Role getUserRole() {
+		return userRole;
 	}
 
-	public void setUserType(String userType) {
-		this.userType = userType;
+	public void setUserRole(Role userRole) {
+		this.userRole = userRole;
 	}
 	
 	public List<PaymentInfo> getPaymentDetails() {

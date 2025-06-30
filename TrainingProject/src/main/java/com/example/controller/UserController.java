@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -23,6 +24,7 @@ public class UserController {
 	
 	public UserController(UserService userService) {
 		this.userService = userService;
+		
 	}
 	
 	@PostMapping("/register-user")
@@ -30,7 +32,7 @@ public class UserController {
 		return userService.saveUser(user);
 	}
 	
-	@PostMapping("/user-login")
+	@PostMapping("/login-user")
 	public ResponseEntity<ApiResponse<?>> loginUser(@RequestBody LoginDetails details) {
 		return userService.loginUser(details);
 	}
@@ -39,10 +41,10 @@ public class UserController {
 		return userService.getUserById(userId);
 	}
 	
-	@GetMapping("/getall")
-	public ResponseEntity<ApiResponse<List<User>>> getAll() {
-		return userService.getAllUsers();
-	}
+//	@GetMapping("/getall")
+//	public ResponseEntity<ApiResponse<List<User>>> getAll() {
+//		return userService.getAllUsers();
+//	}
 	
 	@PutMapping("/update-user/{userId}")
 	public ResponseEntity<ApiResponse<User>> updateUser(@PathVariable Long userId, @RequestBody User user) {
@@ -59,4 +61,10 @@ public class UserController {
 		return userService.deleteUserById(userId);
 		
 	}
+	
+//	@GetMapping("/get-token/{userId}")
+//	public User validateUser(@RequestHeader("Authorization") String token, @PathVariable Long userId) {
+//		
+//		return userService.validateUser(token, userId);
+//	}
 }

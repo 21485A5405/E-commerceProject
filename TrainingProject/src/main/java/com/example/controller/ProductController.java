@@ -25,14 +25,14 @@ public class ProductController {
 		this.productService = productService;
 	}
 
-	@PostMapping("/addproduct")
-	public ResponseEntity<ApiResponse<Product>> addProduct(@RequestBody Product product) {		
-		return productService.saveProduct(product);
+	@PostMapping("/add-product/{userId}")
+	public ResponseEntity<ApiResponse<Product>> addProduct(@RequestBody Product product, @PathVariable Long userId) {		
+		return productService.saveProduct(product, userId);
 	}
 	
-	@PutMapping("/update/{productId}")
-	public ResponseEntity<ApiResponse<Product>> updateProductById(@PathVariable Long productId, @RequestBody Product product) {
-		return productService.productUpdate(productId, product);
+	@PutMapping("/update/{productId}/{userId}")
+	public ResponseEntity<ApiResponse<Product>> updateProductById(@PathVariable Long productId, @RequestBody Product product, @PathVariable Long userId) {
+		return productService.productUpdate(productId, product, userId);
 		
 		
 	}
@@ -42,9 +42,9 @@ public class ProductController {
 		return productService.getProductById(productId);
 	}
 	
-	@DeleteMapping("/delete-by-id/{productId}")
-	public ResponseEntity<ApiResponse<Product>> deleteById(@PathVariable Long productId) {
-		return productService.deleteById(productId);
+	@DeleteMapping("/delete-by-id/{productId}/{userId}")
+	public ResponseEntity<ApiResponse<Product>> deleteById(@PathVariable Long productId, @PathVariable Long userId) {
+		return productService.deleteById(productId, userId);
 	}
 	
 	@GetMapping("/get-product-by-category/{category}")

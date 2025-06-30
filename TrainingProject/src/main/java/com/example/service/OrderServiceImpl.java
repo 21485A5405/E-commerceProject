@@ -6,11 +6,14 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
+import com.example.authentication.CurrentUser;
 import com.example.controller.ApiResponse;
 import com.example.exception.CustomException;
 import com.example.exception.ProductNotFoundException;
+import com.example.exception.UnAuthorizedException;
 import com.example.exception.UserNotFoundException;
 import com.example.model.*;
 import com.example.repo.AddressRepo;
@@ -30,13 +33,15 @@ public class OrderServiceImpl implements OrderService{
 	private ProductRepo productRepo;
 	private CartItemRepo cartItemRepo;
 	private AddressRepo addressRepo;
+	private CurrentUser currentUser;
 	
-	public OrderServiceImpl(UserRepo userRepo, CartItemRepo cartItemRepo, ProductRepo productRepo, OrderRepo orderRepo, AddressRepo addressRepo) {
+	public OrderServiceImpl(UserRepo userRepo, CurrentUser currentUser, CartItemRepo cartItemRepo, ProductRepo productRepo, OrderRepo orderRepo, AddressRepo addressRepo) {
 		this.userRepo = userRepo;
 		this.cartItemRepo = cartItemRepo;
 		this.productRepo = productRepo;
 		this.orderRepo = orderRepo;
 		this.addressRepo = addressRepo;
+		this.currentUser = currentUser;
 	}
 
 	public ResponseEntity<ApiResponse<OrderProduct>> placeOrder(Long userId, Long productId, int quantity, Long addressId) {
@@ -47,6 +52,10 @@ public class OrderServiceImpl implements OrderService{
 	    Optional<CartItem> cart = cartItemRepo.findByUserAndProduct(userId, productId);
 	    Optional<Address> addressExists = addressRepo.findById(addressId);
 	    
+	    User currUser = currentUser.getUser();
+		if(currUser.getUserId()!= userId) {
+			throw new UnAuthorizedException("Not Authorized");
+		}
 	    
 	    if (!findUser.isPresent()) {
 	        throw new UserNotFoundException("User Not Found");
@@ -105,6 +114,11 @@ public class OrderServiceImpl implements OrderService{
 		
 		List<OrderProduct> orders = orderRepo.findByUser(userId);
 		
+		User currUser = currentUser.getUser();
+		if(currUser.getUserId()!= userId) {
+			throw new UnAuthorizedException("Not Authorized");
+		}
+		
 		if(orders.isEmpty()) {
 			throw new UserNotFoundException("No Order Details Found with Given User ID");
 		}
@@ -121,6 +135,11 @@ public class OrderServiceImpl implements OrderService{
 	    if (!orderExists.isPresent()) {
 	        throw new ProductNotFoundException("No matching order found for user " + userId + " with product " + productId + " and quantity " + quantity);
 	    }
+	    User currUser = currentUser.getUser();
+		if(currUser.getUserId()!= userId) {
+			throw new UnAuthorizedException("Not Authorized");
+		}
+		
 	    OrderProduct order = orderExists.get();
 
 	    OrderItem matchingItem = null;
@@ -159,6 +178,12 @@ public class OrderServiceImpl implements OrderService{
 		if(orders.isEmpty()) {
 			throw new ProductNotFoundException("Orders Not Found With This UserID "+userId+" and ProductID "+productId);
 		}
+		
+		User currUser = currentUser.getUser();
+		if(currUser.getUserId()!= userId) {
+			throw new UnAuthorizedException("Not Authorized");
+		}
+		
 		ApiResponse<List<OrderProduct>> response = new ApiResponse<>();
 		response.setData(orders);
 		response.setMessage("Orders Details");
@@ -174,18 +199,21 @@ public class OrderServiceImpl implements OrderService{
 		return ResponseEntity.ok(response);
 	}
 
+	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<ApiResponse<List<OrderProduct>>> getOrderStatus(String status) {
 		
 		List<OrderProduct> orders = orderRepo.findAllByOrderStatus(status);
 		if(orders.isEmpty()) {
 			throw new CustomException("No Order Found with Order Status "+status);
 		}
+		
 		ApiResponse<List<OrderProduct>> response = new ApiResponse<>();
 		response.setData(orders);
 		response.setMessage("Order Details with Order Status "+status);
 		return ResponseEntity.ok(response);
 	}
-
+	
+	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<ApiResponse<List<OrderProduct>>> getOrderByPayment(String paymentStatus) {
 		
 		List<OrderProduct> orders = orderRepo.findAllByPaymentStatus(paymentStatus);

@@ -5,9 +5,12 @@ import java.util.Optional;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
+import com.example.authentication.CurrentUser;
 import com.example.controller.ApiResponse;
 import com.example.exception.CustomException;
 import com.example.exception.ProductNotFoundException;
+import com.example.exception.UnAuthorizedException;
 import com.example.exception.UserNotFoundException;
 import com.example.model.CartItem;
 import com.example.model.Product;
@@ -24,11 +27,13 @@ public class CartItemServiceImpl implements CartItemService{
 	private CartItemRepo cartItemRepo;
 	private ProductRepo productRepo;
 	private UserRepo userRepo;
+	private CurrentUser currentUser;
 	
-	public CartItemServiceImpl(CartItemRepo cartItemRepo, ProductRepo productRepo, UserRepo userRepo) {
+	public CartItemServiceImpl(CartItemRepo cartItemRepo, CurrentUser currentUser, ProductRepo productRepo, UserRepo userRepo) {
 		this.cartItemRepo = cartItemRepo;
 		this.productRepo = productRepo;
 		this.userRepo = userRepo;
+		this.currentUser = currentUser;
 		
 	}
 	
@@ -45,6 +50,11 @@ public class CartItemServiceImpl implements CartItemService{
 		}else if(!u.isPresent()) {
 			throw new UserNotFoundException("User Not Found");
 		}
+		User currUser = currentUser.getUser();
+		if(currUser.getUserId()!= userId) {
+			throw new UnAuthorizedException("Not Authorized");
+		}
+		
 		Product product =p.get();
 		CartItem cartItem = new CartItem();
 		if(quantity <=0) {
@@ -91,6 +101,11 @@ public class CartItemServiceImpl implements CartItemService{
 		if(!c.isPresent()) {
 			throw new UserNotFoundException("User with respective Product Not Found In Cart");
 		}
+		User currUser = currentUser.getUser();
+		if(currUser.getUserId()!= userId) {
+			throw new UnAuthorizedException("Not Authorized");
+		}
+		
 			CartItem cartItem = c.get();
 			ApiResponse<CartItem> response = new ApiResponse<>();
 			response.setData(cartItem);
@@ -105,6 +120,11 @@ public class CartItemServiceImpl implements CartItemService{
 		if (!exists.isPresent()) {
 		    throw new ProductNotFoundException("No Items Found For That Product ID and User ID to Delete");
 		}
+		User currUser = currentUser.getUser();
+		if(currUser.getUserId()!= userId) {
+			throw new UnAuthorizedException("Not Authorized");
+		}
+		
 		cartItemRepo.deleteByUserAndProduct(userId, productId);
 		CartItem cartItem = exists.get();
 		ApiResponse<CartItem> response = new ApiResponse<>();
@@ -114,6 +134,7 @@ public class CartItemServiceImpl implements CartItemService{
 	}
 
 	public ResponseEntity<ApiResponse<List<CartItem>>> getAllCartItems() {
+		
 		
 		List<CartItem> cartItems = cartItemRepo.findAll();
 		ApiResponse<List<CartItem>> response = new ApiResponse<>();
@@ -128,6 +149,11 @@ public class CartItemServiceImpl implements CartItemService{
 		if(cartItems.isEmpty()) {
 			throw new UserNotFoundException("User Not Found");
 		}
+		User currUser = currentUser.getUser();
+		if(currUser.getUserId()!= userId) {
+			throw new UnAuthorizedException("Not Authorized");
+		}
+		
 		ApiResponse<List<CartItem>> response = new ApiResponse<>();
 		response.setData(cartItems);
 		response.setMessage("CartItem of User"+userId);
@@ -143,6 +169,11 @@ public class CartItemServiceImpl implements CartItemService{
 			
 			throw new ProductNotFoundException("No Product Found ");
 		}
+		User currUser = currentUser.getUser();
+		if(currUser.getUserId()!= userId) {
+			throw new UnAuthorizedException("Not Authorized");
+		}
+		
 		CartItem cartItem = c.get();
 		Product product = p.get();
 		cartItem.setProductQuantity(newQuantity);
@@ -162,6 +193,11 @@ public class CartItemServiceImpl implements CartItemService{
 		if(c.isEmpty()) {
 			throw new UserNotFoundException("User Not Found");
 		}
+		User currUser = currentUser.getUser();
+		if(currUser.getUserId()!= userId) {
+			throw new UnAuthorizedException("Not Authorized");
+		}
+		
 		cartItemRepo.deleteAllByUser(userId);
 		ApiResponse<List<CartItem>> response = new ApiResponse<>();
 		response.setData(c);
