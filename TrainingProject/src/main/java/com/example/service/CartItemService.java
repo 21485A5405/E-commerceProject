@@ -16,8 +16,6 @@ public interface CartItemService {
 	
 	public ResponseEntity<ApiResponse<CartItem>> getCartItems(Long userId, Long productId);
 	
-	public ResponseEntity<ApiResponse<List<CartItem>>> getAllCartItems();
-	
 	public ResponseEntity<ApiResponse<CartItem>> deleteUserAndProduct(Long userId, Long productId);
 	
 	public ResponseEntity<ApiResponse<List<CartItem>>> getItemsByUserId(Long userId);

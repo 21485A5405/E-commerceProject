@@ -1,6 +1,8 @@
 package com.example.model;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -21,6 +23,7 @@ public class CartItem {
 
 	@ManyToOne
 	@JoinColumn(name = "userId", nullable = false)
+	@JsonIgnore
 	private User user;
 
 	@ManyToOne

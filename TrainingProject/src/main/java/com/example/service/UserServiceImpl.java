@@ -192,6 +192,10 @@ public class UserServiceImpl implements UserService{
 			throw new CustomException("User DoesNot Exists Please Register");
 		}
 		
+		if(exists.get().getUserRole()!=Role.CUSTOMER) {
+			throw new UnAuthorizedException("Please Provide User Credentials");
+		}
+		
 		User user = exists.get();
 		UserToken userToken = new UserToken();
 		

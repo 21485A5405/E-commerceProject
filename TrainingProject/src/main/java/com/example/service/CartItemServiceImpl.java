@@ -133,16 +133,6 @@ public class CartItemServiceImpl implements CartItemService{
 		return ResponseEntity.ok(response);
 	}
 
-	public ResponseEntity<ApiResponse<List<CartItem>>> getAllCartItems() {
-		
-		
-		List<CartItem> cartItems = cartItemRepo.findAll();
-		ApiResponse<List<CartItem>> response = new ApiResponse<>();
-		response.setData(cartItems);
-		response.setMessage("CartItems List");
-		return ResponseEntity.ok(response);
-	}
-
 	public ResponseEntity<ApiResponse<List<CartItem>>> getItemsByUserId(Long userId) {
 		
 		List<CartItem> cartItems = cartItemRepo.findByUserId(userId);

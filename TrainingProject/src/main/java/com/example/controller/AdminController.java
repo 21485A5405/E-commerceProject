@@ -82,7 +82,7 @@ public class AdminController {
 	}
 	
 	@PostMapping("/login-admin")
-	public ResponseEntity<ApiResponse<?>> login(LoginDetails details) {
+	public ResponseEntity<ApiResponse<?>> login(@RequestBody LoginDetails details) {
 		return adminService.loginAdmin(details);
 	}
 }

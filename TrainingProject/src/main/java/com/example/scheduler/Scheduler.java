@@ -9,6 +9,8 @@ import org.springframework.stereotype.Component;
 import com.example.model.UserToken;
 import com.example.repo.UserTokenRepo;
 
+import jakarta.transaction.Transactional;
+
 @Component
 public class Scheduler {
 
@@ -19,17 +21,16 @@ public class Scheduler {
     }
 
     @Scheduled(fixedRate = 15 * 60 * 1000)
+    @Transactional
     public void clearExpiredTokens() {
         LocalDateTime expiry = LocalDateTime.now().minusMinutes(30);
         if (expiry!= null) {
 
             List<UserToken> expiredUsers = userTokenRepo.findExpiredTokens(expiry);
 
-        for (UserToken user : expiredUsers) {
-            user.setUserToken(null);
-            user.setGeneratedAt(null);
+	        for (UserToken user : expiredUsers) {
+	           userTokenRepo.deleteById(user.getTokenId());
+	        }
         }
-        userTokenRepo.saveAll(expiredUsers);
-        }
-        }
+     }
 }

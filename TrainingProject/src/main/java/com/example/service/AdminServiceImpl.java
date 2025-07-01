@@ -1,11 +1,15 @@
 package com.example.service;
 
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.example.authentication.CurrentUser;
@@ -18,9 +22,11 @@ import com.example.model.OrderProduct;
 import com.example.model.Product;
 import com.example.model.Role;
 import com.example.model.User;
+import com.example.model.UserToken;
 import com.example.repo.OrderRepo;
 import com.example.repo.ProductRepo;
 import com.example.repo.UserRepo;
+import com.example.repo.UserTokenRepo;
 
 @Service
 public class AdminServiceImpl implements AdminService{
@@ -29,12 +35,14 @@ public class AdminServiceImpl implements AdminService{
 	private ProductRepo productRepo;
 	private OrderRepo orderRepo;
 	private CurrentUser currentUser;
+	private UserTokenRepo userTokenRepo;
 	
-	public AdminServiceImpl(UserRepo userRepo, ProductRepo productRepo, OrderRepo orderRepo, CurrentUser currentUser) {
+	public AdminServiceImpl(UserRepo userRepo, ProductRepo productRepo, OrderRepo orderRepo, UserTokenRepo userTokenRepo, CurrentUser currentUser) {
 		this.userRepo = userRepo;
 		this.productRepo = productRepo;
 		this.orderRepo = orderRepo;
 		this.currentUser = currentUser;
+		this.userTokenRepo = userTokenRepo;
 	}
 	
 	public ResponseEntity<ApiResponse<User>> createAdmin(User newAdmin) {
@@ -43,6 +51,11 @@ public class AdminServiceImpl implements AdminService{
 		if(exists.isPresent() && exists.get().getUserRole().equals(newAdmin.getUserRole())){
 			throw new CustomException("Admin Already Exists Please Login");
 		}
+		
+		if(!exists.get().getUserRole().equals(Role.ADMIN)) {
+			throw new AdminNotFoundException("User Not Allowed To Create Admin");
+		}
+		
 		userRepo.save(newAdmin);
 		User admin = exists.get();
 		ApiResponse<User> response = new ApiResponse<>();
@@ -61,9 +74,10 @@ public class AdminServiceImpl implements AdminService{
 		if(!exists.get().getUserRole().equals(Role.ADMIN)) {
 			throw new AdminNotFoundException("User Not Allowed To See Admin Details");
 		}
+		
 		User currUser = currentUser.getUser();
 		if(currUser.getUserId() != adminId) {
-			throw new UnAuthorizedException("You are Not Allowed to See Admin Details");
+			throw new UnAuthorizedException("Not Authorized");
 		}
 		
 		User admin = exists.get();
@@ -83,6 +97,11 @@ public class AdminServiceImpl implements AdminService{
 
 		if(!exists.get().getUserRole().equals(Role.ADMIN)) {
 			throw new AdminNotFoundException("User Not Allowed To Update Admin Details");
+		}
+		
+		User currUser = currentUser.getUser();
+		if(currUser.getUserId() != adminId) {
+			throw new UnAuthorizedException("Not Authorized");
 		}
 		
 		if(newAdmin.getUserName() == null) {
@@ -216,18 +235,32 @@ public class AdminServiceImpl implements AdminService{
 		
 		Optional<User> adminExists = userRepo.findByUserEmail(details.getLoginEmail());
 		
-		if(!adminExists.isPresent() || adminExists.get().getUserRole() != Role.ADMIN) {
+		if(!adminExists.isPresent()) {
 			
-			throw new AdminNotFoundException("Admin Not Found");
+			throw new AdminNotFoundException("No Email Found");
+		}
+		if(adminExists.get().getUserRole()!=Role.ADMIN) {
+			throw new UnAuthorizedException("Please Provide Proper Admin Credentials");
 		}
 		
+		User user = adminExists.get();
+		UserToken userToken = new UserToken();
+		
+		BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+	    if (!encoder.matches(details.getLoginPassword(), user.getUserPassword())) {
+	        throw new UnAuthorizedException("Invalid credentials.");
+	    }
+	    String token = UUID.randomUUID().toString();
+	    userToken.setUserToken(token);
+	    userToken.setGeneratedAt(LocalDateTime.now());
+	    userToken.setUser(user);
+	    userRepo.save(user);
+	    userTokenRepo.save(userToken);
+	    
 		ApiResponse<User> response  = new ApiResponse<>();
 		response.setData(adminExists.get());
 		response.setMessage("Login Successful");
 		return ResponseEntity.ok(response);
 	}
-
-	
-	
 }
 

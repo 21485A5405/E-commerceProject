@@ -193,18 +193,27 @@ public class OrderServiceImpl implements OrderService{
 	public ResponseEntity<ApiResponse<List<OrderProduct>>> getAllOrders() {
 		List<OrderProduct> orderList = orderRepo.findAll();
 		
+		User currUser = currentUser.getUser();
+		if(currUser.getUserRole()!= Role.ADMIN) {
+			throw new UnAuthorizedException("User Not Authorized to See All Orders");
+		}
+		
 		ApiResponse<List<OrderProduct>> response = new ApiResponse<>();
 		response.setData(orderList);
 		response.setMessage("All Orders Details");
 		return ResponseEntity.ok(response);
 	}
 
-	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<ApiResponse<List<OrderProduct>>> getOrderStatus(String status) {
 		
 		List<OrderProduct> orders = orderRepo.findAllByOrderStatus(status);
 		if(orders.isEmpty()) {
 			throw new CustomException("No Order Found with Order Status "+status);
+		}
+		
+		User currUser = currentUser.getUser();
+		if(currUser.getUserRole()!= Role.ADMIN) {
+			throw new UnAuthorizedException("User Not Allowed to See Order Statuses");
 		}
 		
 		ApiResponse<List<OrderProduct>> response = new ApiResponse<>();
@@ -213,14 +222,20 @@ public class OrderServiceImpl implements OrderService{
 		return ResponseEntity.ok(response);
 	}
 	
-	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<ApiResponse<List<OrderProduct>>> getOrderByPayment(String paymentStatus) {
 		
 		List<OrderProduct> orders = orderRepo.findAllByPaymentStatus(paymentStatus);
 		
+		User currUser = currentUser.getUser();
+		if(currUser.getUserRole()!= Role.ADMIN) {
+			throw new UnAuthorizedException("User Not Allowed to See Payment Statuses");
+		}
+		
 		if(orders.isEmpty()) {
 			throw new CustomException("No Orders Found With Payment Status "+paymentStatus);
 		}
+		
+		
 		ApiResponse<List<OrderProduct>> response = new ApiResponse<>();
 		response.setData(orders);
 		response.setMessage("Order Details with Payment Status "+paymentStatus);
