@@ -1,5 +1,6 @@
 package com.example.model;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -10,6 +11,7 @@ import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -41,10 +43,10 @@ public class User {
 	@OneToMany(mappedBy = "user")
 	private List<CartItem> cartItems;
 	
-	@ElementCollection(targetClass = AdminPermissions.class)
-	@CollectionTable(name = "user_permissions", joinColumns = @JoinColumn(name = "user_id"))
+	@ElementCollection(targetClass = AdminPermissions.class, fetch = FetchType.EAGER)
+	@CollectionTable(name = "userPermissions", joinColumns = @JoinColumn(name = "userId"))
 	@Enumerated(EnumType.STRING)
-	private Set<AdminPermissions> userPermissions = new HashSet<>();
+	private Set<AdminPermissions> userPermissions;
 	
 	public Set<AdminPermissions> getUserPermissions() {
 		return userPermissions;

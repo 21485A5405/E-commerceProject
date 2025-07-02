@@ -78,7 +78,7 @@ public class AdminController {
 	
 	@GetMapping("/getall-orders")
 	public ResponseEntity<ApiResponse<List<OrderProduct>>> getAll() {
-		return orderService.getAllOrders();
+		return adminService.getAllOrders();
 	}
 	
 	@PostMapping("/login-admin")

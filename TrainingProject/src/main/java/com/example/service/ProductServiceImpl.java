@@ -44,9 +44,14 @@ public class ProductServiceImpl implements ProductService{
 		}
 		
 		User currUser = currentUser.getUser();
-		if((currUser.getUserRole() == Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Product_Manager)) || (currUser.getUserRole() ==Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
-			throw new UnAuthorizedException("You Dont Have Rights To See Admin Details");
+		if(currUser == null) {
+			throw new UnAuthorizedException("Please Login");
 		}
+		if (currUser.getUserRole() == Role.ADMIN &&
+			    !(currUser.getUserPermissions().contains(AdminPermissions.Product_Manager) ||
+			      currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
+			    throw new UnAuthorizedException("You don't have rights to update user roles");
+			}
 		
 		if(product == null) {
 			throw new ProductNotFoundException("Product Cannot be Empty");
@@ -80,9 +85,14 @@ public class ProductServiceImpl implements ProductService{
 		}
 		
 		User currUser = currentUser.getUser();
-		if((currUser.getUserRole() == Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Product_Manager)) || (currUser.getUserRole() ==Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
-			throw new UnAuthorizedException("You Dont Have Rights To See Admin Details");
+		if(currUser == null) {
+			throw new UnAuthorizedException("Please Login");
 		}
+		if (currUser.getUserRole() == Role.ADMIN &&
+			    !(currUser.getUserPermissions().contains(AdminPermissions.Product_Manager) ||
+			      currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
+			    throw new UnAuthorizedException("You don't have rights to update user roles");
+			}
 			Product product = exists.get();
 			product.setProductName(newProduct.getProductName());
 			product.setProductPrice(newProduct.getProductPrice());
@@ -124,12 +134,17 @@ public class ProductServiceImpl implements ProductService{
 			throw new UnAuthorizedException("User Not Found");
 		}
 		User currUser = currentUser.getUser();
+		if(currUser == null) {
+			throw new UnAuthorizedException("Please Login");
+		}
 		if(currUser.getUserRole() ==Role.CUSTOMER) {
 			throw new UnAuthorizedException("User Not Allowed to Delete Product");
 		}
-		if((currUser.getUserRole() == Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Product_Manager)) || (currUser.getUserRole() ==Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
-			throw new UnAuthorizedException("You Dont Have Rights To See Admin Details");
-		}
+		if (currUser.getUserRole() == Role.ADMIN &&
+			    !(currUser.getUserPermissions().contains(AdminPermissions.Product_Manager) ||
+			      currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
+			    throw new UnAuthorizedException("You don't have rights to update user roles");
+			}
 			productRepo.deleteById(productId);
 			Product product = exists.get();
 			ApiResponse<Product> response = new ApiResponse<>();

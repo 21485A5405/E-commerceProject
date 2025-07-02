@@ -42,13 +42,11 @@ public class OrderController {
 	}
 	
 	@GetMapping("/get-by-order-status/{status}")
-	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<ApiResponse<List<OrderProduct>>> getOrders(@PathVariable OrderStatus status) {
 		return orderService.getOrderStatus(status);
 	}
 	
 	@GetMapping("/get-by-payment-status/{paymentStatus}")
-	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<ApiResponse<List<OrderProduct>>> getOrder(@PathVariable PaymentStatus paymentStatus) {
 		return orderService.getOrderByPayment(paymentStatus);
 	}

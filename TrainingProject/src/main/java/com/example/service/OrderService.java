@@ -6,6 +6,8 @@ import org.springframework.http.ResponseEntity;
 
 import com.example.controller.ApiResponse;
 import com.example.model.OrderProduct;
+import com.example.model.OrderStatus;
+import com.example.model.PaymentStatus;
 
 public interface OrderService {
 	
@@ -19,9 +21,9 @@ public interface OrderService {
 
 	public ResponseEntity<ApiResponse<List<OrderProduct>>> getAllOrders();
 
-	public ResponseEntity<ApiResponse<List<OrderProduct>>> getOrderStatus(String status);
+	public ResponseEntity<ApiResponse<List<OrderProduct>>> getOrderStatus(OrderStatus status);
 
-	public ResponseEntity<ApiResponse<List<OrderProduct>>> getOrderByPayment(String paymentStatus);
+	public ResponseEntity<ApiResponse<List<OrderProduct>>> getOrderByPayment(PaymentStatus paymentStatus);
 	
 
 }

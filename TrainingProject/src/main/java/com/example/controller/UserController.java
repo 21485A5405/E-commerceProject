@@ -1,6 +1,5 @@
 package com.example.controller;
 
-import java.util.List;
 import java.util.Set;
 
 import org.springframework.http.ResponseEntity;
@@ -62,6 +61,6 @@ public class UserController {
 	@PutMapping("/update-user-role/{userId}/{adminId}")
 	public ResponseEntity<ApiResponse<User>> updateRole(@RequestBody Set<AdminPermissions> permissions, @PathVariable Long userId, @PathVariable Long adminId) {
 		
-		return userService.updateUserRole(permissions,userId, adminId);
+		return userService.updateUserRole(permissions, userId, adminId);
 	}
 }

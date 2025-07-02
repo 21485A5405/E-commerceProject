@@ -2,6 +2,7 @@ package com.example.service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -51,18 +52,25 @@ public class UserServiceImpl implements UserService{
 			throw new CustomException("User Already Exists Please Login");
 		}
 
-		for (Address address : user.getShippingAddress()) {
-		    address.setUser(user);
+		if (user.getShippingAddress() != null) {
+		    for (Address address : user.getShippingAddress()) {
+		        address.setUser(user);
+		    }
+		} else {
+		    user.setShippingAddress(new ArrayList<>());
 		}
 
-		if(user.getUserRole()==Role.ADMIN) {
+
+		if(user.getUserRole()!=null && user.getUserRole()==Role.ADMIN) {
 			throw new UnAuthorizedException("You Dont Have Permission to Make User Into Admin");
 		}
-		BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-		String hashedPassword = encoder.encode(user.getUserPassword());
-		user.setUserPassword(hashedPassword);
-		userRepo.save(user);
-
+		else {
+			BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+			String hashedPassword = encoder.encode(user.getUserPassword());
+			user.setUserPassword(hashedPassword);
+			user.setUserRole(Role.CUSTOMER);
+			userRepo.save(user);
+		}
 		ApiResponse<User> response = new ApiResponse<>();
 		response.setData(user);
 		response.setMessage("New User Added Successfully");
@@ -77,8 +85,11 @@ public class UserServiceImpl implements UserService{
 		}
 		
 		User currUser = currentUser.getUser();
+		if(currUser == null) {
+			throw new UnAuthorizedException("Please Login");
+		}
 		if(currUser.getUserId() != userId) {
-			throw new UnAuthorizedException("Un Authorized");
+			throw new UnAuthorizedException("You Are Not Allowed To Update Another User Details");
 		}
 		
 		if(newUser.getUserName() == null) {
@@ -118,11 +129,11 @@ public class UserServiceImpl implements UserService{
 		}
 
 		User currUser = currentUser.getUser();
-		if((currUser.getUserRole() == Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.User_Manager)) || (currUser.getUserRole() ==Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
-			throw new UnAuthorizedException("You Dont Have Rights To See Admin Details");
+		if(currUser == null) {
+			throw new UnAuthorizedException("Please Login");
 		}
 		if(currUser.getUserId()!= userId) {
-			throw new UnAuthorizedException("Not Authorized");
+			throw new UnAuthorizedException("Not Allowed to Get Another User Details");
 		}
 		
 		User user = exists.get();
@@ -142,9 +153,11 @@ public class UserServiceImpl implements UserService{
 		}
 		
 		User currUser = currentUser.getUser();
-		
+		if(currUser == null) {
+			throw new UnAuthorizedException("Please Login");
+		}
 		if(currUser.getUserId()!= userId) {
-			throw new UnAuthorizedException("Not Authorized");
+			throw new UnAuthorizedException("You Are Not Allowed To Delete User");
 		}
 		
 		cartItemRepo.deleteAllByUser(userId);
@@ -170,8 +183,11 @@ public class UserServiceImpl implements UserService{
 	    }
 	    
 	    User currUser = currentUser.getUser();
+		if(currUser == null) {
+			throw new UnAuthorizedException("Please Login");
+		}
 		if(currUser.getUserId()!= exists.get().getUserId()) {
-			throw new UnAuthorizedException("Not Authorized");
+			throw new UnAuthorizedException("You Are Not Allowed to Change Another User Password");
 		}
 	    
 	    User user = exists.get();
@@ -214,6 +230,7 @@ public class UserServiceImpl implements UserService{
 		return ResponseEntity.ok(response);
 	}
 	
+	@Transactional
 	public ResponseEntity<ApiResponse<User>> updateUserRole(Set<AdminPermissions> permissions, Long userId, Long adminId) {
 		
 		Optional<User> exists = userRepo.findById(userId);
@@ -222,15 +239,21 @@ public class UserServiceImpl implements UserService{
 			throw new UserNotFoundException("User Not Found");
 		}
 		User currUser = currentUser.getUser();
-		if((currUser.getUserRole() == Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Product_Manager)) || (currUser.getUserRole() ==Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
-			throw new UnAuthorizedException("You Dont Have Rights To Update User Roles");
+		if(currUser == null) {
+			throw new UnAuthorizedException("Please Login");
 		}
+		if (currUser.getUserRole() == Role.ADMIN &&
+			    !(currUser.getUserPermissions().contains(AdminPermissions.User_Manager) ||
+			      currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
+			    throw new UnAuthorizedException("You don't have Rights to Update user Roles");
+			}
+
 		exists.get().setUserRole(Role.ADMIN);
-	    for (AdminPermissions permission : exists.get().getUserPermissions()) {
-	        permissions.add(permission);
-	    }
+		exists.get().setUserPermissions(new HashSet<>(permissions));
+		
+		userRepo.save(exists.get());
 		ApiResponse<User> response = new ApiResponse<>();
-		response.setData(currUser);
+		response.setData(exists.get());
 		response.setMessage("User Role Updated Successfully");
 		return ResponseEntity.ok(response);
 	}

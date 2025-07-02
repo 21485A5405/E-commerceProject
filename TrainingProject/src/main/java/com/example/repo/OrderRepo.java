@@ -10,6 +10,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.example.model.OrderProduct;
+import com.example.model.OrderStatus;
+import com.example.model.PaymentStatus;
 
 import jakarta.transaction.Transactional;
 
@@ -44,10 +46,10 @@ public interface OrderRepo extends JpaRepository<OrderProduct, Long> {
                           @Param("quantity") int quantity);
 
     @Query("SELECT o FROM OrderProduct o WHERE o.orderStatus = :status")
-    List<OrderProduct> findAllByOrderStatus(@Param("status") String status);
+    List<OrderProduct> findAllByOrderStatus(@Param("status") OrderStatus status);
 
     @Query("SELECT o FROM OrderProduct o WHERE o.paymentStatus = :paymentStatus")
-    List<OrderProduct> findAllByPaymentStatus(@Param("paymentStatus") String paymentStatus);
+    List<OrderProduct> findAllByPaymentStatus(@Param("paymentStatus") PaymentStatus paymentStatus);
 
     @Query("SELECT DISTINCT o FROM OrderProduct o JOIN o.orderItems oi WHERE o.user.userId = :userId AND oi.product.productId = :productId AND oi.quantity = :quantity")
     Optional<OrderProduct> findByUserAndProductAndQuantity(@Param("userId") Long userId,
