@@ -11,7 +11,7 @@ import com.example.model.User;
 
 public interface AdminService {
 	
-	public ResponseEntity<ApiResponse<User>> createAdmin(User admin) ;
+//	public ResponseEntity<ApiResponse<User>> createAdmin(User admin) ;
 
 	public ResponseEntity<ApiResponse<User>> getAdminById(Long adminId);
 
@@ -22,7 +22,7 @@ public interface AdminService {
 	public ResponseEntity<ApiResponse<List<User>>> getAllAdmins();
 
 	List<Long> getAllUserIds();
-	
+
 	public ResponseEntity<ApiResponse<List<OrderProduct>>> getAllOrders();
 
 	public List<Long> getAllProductIds();

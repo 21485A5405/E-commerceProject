@@ -3,12 +3,15 @@ package com.example.service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +20,8 @@ import com.example.controller.ApiResponse;
 import com.example.exception.AdminNotFoundException;
 import com.example.exception.CustomException;
 import com.example.exception.UnAuthorizedException;
+import com.example.model.Address;
+import com.example.model.AdminPermissions;
 import com.example.model.LoginDetails;
 import com.example.model.OrderProduct;
 import com.example.model.Product;
@@ -27,6 +32,8 @@ import com.example.repo.OrderRepo;
 import com.example.repo.ProductRepo;
 import com.example.repo.UserRepo;
 import com.example.repo.UserTokenRepo;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class AdminServiceImpl implements AdminService{
@@ -45,24 +52,30 @@ public class AdminServiceImpl implements AdminService{
 		this.userTokenRepo = userTokenRepo;
 	}
 	
-	public ResponseEntity<ApiResponse<User>> createAdmin(User newAdmin) {
-		Optional<User> exists = userRepo.findByUserEmail(newAdmin.getUserName());
-		
-		if(exists.isPresent() && exists.get().getUserRole().equals(newAdmin.getUserRole())){
-			throw new CustomException("Admin Already Exists Please Login");
-		}
-		
-		if(!exists.get().getUserRole().equals(Role.ADMIN)) {
-			throw new AdminNotFoundException("User Not Allowed To Create Admin");
-		}
-		
-		userRepo.save(newAdmin);
-		User admin = exists.get();
-		ApiResponse<User> response = new ApiResponse<>();
-		response.setData(admin);
-		response.setMessage("New Admin Added Successfully");
-		return ResponseEntity.ok(response);
-	}
+//	public ResponseEntity<ApiResponse<User>> createAdmin(User newAdmin) {
+//			Optional<User> exists = userRepo.findByUserEmail(newAdmin.getUserEmail());
+//			if(exists.isPresent()) {
+//				throw new CustomException("Admin Already Exists Please Login");
+//			}
+//			
+//			for (Address address : newAdmin.getShippingAddress()) {
+//			    address.setUser(newAdmin);
+//			}
+//			Set<AdminPermissions> permissions = new HashSet<>();
+//		    for (AdminPermissions permission : newAdmin.getUserPermissions()) {
+//		        permissions.add(permission);
+//		    }
+//			
+//			BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+//			String hashedPassword = encoder.encode(newAdmin.getUserPassword());
+//			newAdmin.setUserPassword(hashedPassword);
+//			userRepo.save(newAdmin);
+//
+//			ApiResponse<User> response = new ApiResponse<>();
+//			response.setData(newAdmin);
+//			response.setMessage("New User Added Successfully");
+//			return ResponseEntity.ok(response);
+//		}
 
 	public ResponseEntity<ApiResponse<User>> getAdminById(Long adminId) {
 		
@@ -71,59 +84,72 @@ public class AdminServiceImpl implements AdminService{
 			throw new AdminNotFoundException("Admin Not Found");
 		}
 		
-		if(!exists.get().getUserRole().equals(Role.ADMIN)) {
+		if(exists.get().getUserRole()!=Role.ADMIN) {
 			throw new AdminNotFoundException("User Not Allowed To See Admin Details");
 		}
-		
+
 		User currUser = currentUser.getUser();
 		if(currUser.getUserId() != adminId) {
-			throw new UnAuthorizedException("Not Authorized");
+			throw new UnAuthorizedException("Not Authorized to See Another Admin Details");
 		}
-		
-		User admin = exists.get();
-		ApiResponse<User> adminFound = new ApiResponse<>();
-		adminFound.setData(admin);
-		adminFound.setMessage("Admin Details");
-		return ResponseEntity.ok(adminFound);
+		else if(exists.get().getUserRole()!=Role.ADMIN) {
+			throw new AdminNotFoundException("User Not Allowed To See Admin Details");
+		}
+		else if(currUser.getUserRole() ==Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Manager)) {
+			throw new UnAuthorizedException("You Dont Have Rights To See Admin Details");
+		}else {
+			User admin = exists.get();
+			ApiResponse<User> adminFound = new ApiResponse<>();
+			adminFound.setData(admin);
+			adminFound.setMessage("Admin Details");
+			return ResponseEntity.ok(adminFound);
+		}
+
 	}
 
+	@Transactional
 	public ResponseEntity<User> updateAdminById(Long adminId, User newAdmin) {
 		
-		Optional<User> exists = userRepo.findById(adminId);
+		Optional<User> exists = userRepo.findByIdWithPermissions(adminId);
+		
 		if(!exists.isPresent()) {
-			
-			throw new AdminNotFoundException("Admin Not Found");
+			throw new UsernameNotFoundException("User Not Found");
 		}
+		
+		User currUser = userRepo.findByIdWithPermissions(currentUser.getUser().getUserId())
+			    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-		if(!exists.get().getUserRole().equals(Role.ADMIN)) {
+		if(exists.get().getUserRole()!=Role.ADMIN) {
 			throw new AdminNotFoundException("User Not Allowed To Update Admin Details");
 		}
-		
-		User currUser = currentUser.getUser();
-		if(currUser.getUserId() != adminId) {
-			throw new UnAuthorizedException("Not Authorized");
+		else if(currUser.getUserRole() ==Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Manager)) {
+			throw new UnAuthorizedException("You Dont Have Rights To Update Admin Details");
 		}
-		
-		if(newAdmin.getUserName() == null) {
-			throw new AdminNotFoundException("Admin Name Cannot be Empty");
-		}else if(newAdmin.getPermissions() == null) {
-			throw new AdminNotFoundException("Admin Permissions Cannot be Empty");
-		}else if(newAdmin.getUserRole() == null) {
-			throw new AdminNotFoundException("Admin Role Cannot be Empty");
-		}else if(newAdmin.getUserEmail() == null) {
-			throw new AdminNotFoundException("Email Cannot be Empty");
-		}else if(newAdmin.getUserPassword() == null) {
-			throw new AdminNotFoundException("Password Caanot be Empty");
+		else {
+			if(newAdmin.getUserName() == null) {
+				throw new AdminNotFoundException("Admin Name Cannot be Empty");
+			}else if(newAdmin.getUserPermissions() == null) {
+				throw new AdminNotFoundException("Admin Permissions Cannot be Empty");
+			}else if(newAdmin.getUserRole() == null) {
+				throw new AdminNotFoundException("Admin Role Cannot be Empty");
+			}else if(newAdmin.getUserEmail() == null) {
+				throw new AdminNotFoundException("Email Cannot be Empty");
+			}else if(newAdmin.getUserPassword() == null) {
+				throw new AdminNotFoundException("Password Caanot be Empty");
+			}
+			
+			User oldAdmin = exists.get();
+			oldAdmin.setUserName(newAdmin.getUserName());
+			oldAdmin.setUserEmail(newAdmin.getUserEmail());
+			BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+			String hashedPassword = encoder.encode(newAdmin.getUserPassword());
+			oldAdmin.setUserPassword(hashedPassword);
+			oldAdmin.setUserPermissions(newAdmin.getUserPermissions());
+			oldAdmin.setUserRole(newAdmin.getUserRole());
+			userRepo.save(oldAdmin);
+			return ResponseEntity.status(HttpStatus.OK).body(oldAdmin);
 		}
-		
-		User oldAdmin = exists.get();
-		oldAdmin.setUserName(newAdmin.getUserName());
-		oldAdmin.setPermissions(newAdmin.getPermissions());
-		oldAdmin.setUserRole(newAdmin.getUserRole());
-		
-		userRepo.save(oldAdmin);
-		return ResponseEntity.status(HttpStatus.OK).body(oldAdmin);
-	}
+}
 	
 	public ResponseEntity<ApiResponse<User>> deleteAdminById(Long adminId) {
 		
@@ -132,32 +158,40 @@ public class AdminServiceImpl implements AdminService{
 			
 			throw new AdminNotFoundException("Admin Not Found");
 		}
-		
-		if(!exists.get().getUserRole().equals(Role.ADMIN)) {
+		User currUser = currentUser.getUser();
+		if(currUser.getUserId() != adminId) {
+			throw new UnAuthorizedException("Not Authorized to Delete Another Admin Details");
+		}
+		else if(exists.get().getUserRole()!=Role.ADMIN) {
 			throw new AdminNotFoundException("User Not Allowed To Delete Admin Details");
 		}
+		else if(currUser.getUserRole() ==Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Manager)) {
+			throw new UnAuthorizedException("You Dont Have Rights To Delete Admin");
+		}else {
 		
-		userRepo.deleteById(adminId);
-		User admin = exists.get();
-		ApiResponse<User> response = new ApiResponse<>();
-		response.setData(admin);
-		response.setMessage("Admin Deleted Successfully");
-		return ResponseEntity.ok(response);
+			userRepo.deleteById(adminId);
+			User admin = exists.get();
+			ApiResponse<User> response = new ApiResponse<>();
+			response.setData(admin);
+			response.setMessage("Admin Deleted Successfully");
+			return ResponseEntity.ok(response);
+		}
 	}
 
 	public ResponseEntity<ApiResponse<List<User>>> getAllAdmins() {
 		List<User> list = userRepo.findAll();
 		List<User> admins = new ArrayList<>();
-		
+		User currUser = currentUser.getUser();
+		if(!currUser.getUserRole().equals(Role.ADMIN)) {
+			throw new UnAuthorizedException("User are Not Allowed to See Admin Details");
+		}
+		if(currUser.getUserRole() ==Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Manager)) {
+			throw new UnAuthorizedException("You Dont Have Rights To See Admin Details");
+		}
 		for(User users :list) {
 			if(users.getUserRole() == Role.ADMIN) {
 				admins.add(users);
 			}
-		}
-
-		User currUser = currentUser.getUser();
-		if(!currUser.getUserRole().equals(Role.ADMIN)) {
-			throw new UnAuthorizedException("User are Not Allowed to See Admin Details");
 		}
 		ApiResponse<List<User>> response = new ApiResponse<>();
 		response.setMessage("List Of Admins");
@@ -167,9 +201,15 @@ public class AdminServiceImpl implements AdminService{
 
 	public ResponseEntity<ApiResponse<List<OrderProduct>>> getAllOrders() {
 		List<OrderProduct> orderList = orderRepo.findAll();
-		
+	
 		User currUser = currentUser.getUser();
-		if(!currUser.getUserRole().equals(Role.ADMIN)) {
+		if(currUser.getUserRole() != Role.ADMIN) {
+			throw new UnAuthorizedException("User are Not Allowed to See Admin Details");
+		}
+		if((currUser.getUserRole() == Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Order_Manager)) || (currUser.getUserRole() ==Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
+			throw new UnAuthorizedException("You Dont Have Rights To See Admin Details");
+		}
+		if(currUser.getUserRole()!=Role.ADMIN) {
 			throw new UnAuthorizedException("User are Not Allowed to See All Orders Details");
 		}
 		
@@ -184,7 +224,7 @@ public class AdminServiceImpl implements AdminService{
 		 List<User> allUsers = userRepo.findAll();
 		 
 		User currUser = currentUser.getUser();
-		if(!currUser.getUserRole().equals(Role.ADMIN)) {
+		if(currUser.getUserRole()!=Role.ADMIN) {
 			throw new UnAuthorizedException("User are Not Allowed to See All User ID's");
 		}
 		 
@@ -200,8 +240,11 @@ public class AdminServiceImpl implements AdminService{
 	public List<Long> getAllProductIds() {
 		User currUser = currentUser.getUser();
 		
-		if(!currUser.getUserRole().equals(Role.ADMIN)) {
+		if(currUser.getUserRole()!=Role.ADMIN) {
 			throw new UnAuthorizedException("User are Not Allowed to See All Product ID's");
+		}
+		if((currUser.getUserRole() == Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Product_Manager)) || (currUser.getUserRole() ==Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
+			throw new UnAuthorizedException("You Dont Have Rights To See Admin Details");
 		}
 		return productRepo.getAllProductIds();
 	}
@@ -225,6 +268,10 @@ public class AdminServiceImpl implements AdminService{
 		
 		List<Product> products = productRepo.findAll();
 		
+		User currUser = currentUser.getUser();
+		if((currUser.getUserRole() == Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Product_Manager)) || (currUser.getUserRole() ==Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
+			throw new UnAuthorizedException("You Dont Have Rights To See Admin Details");
+		}
 		ApiResponse<List<Product>> response = new ApiResponse<>();
 		response.setData(products);
 		response.setMessage("Products List");

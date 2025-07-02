@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.example.model.Role;
@@ -19,4 +20,10 @@ public interface UserRepo extends JpaRepository<User, Long> {
     List<Long> getAllUserIds();
 	
 	Optional<User> findByUserRole(Role role);
+	
+	
+	@Query("SELECT u FROM User u LEFT JOIN FETCH u.userPermissions WHERE u.id = :id")
+	Optional<User> findByIdWithPermissions(@Param("id") Long id);
+
+	
 }

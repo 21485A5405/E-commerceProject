@@ -1,8 +1,10 @@
 package com.example.service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
@@ -15,6 +17,7 @@ import com.example.exception.CustomException;
 import com.example.exception.UnAuthorizedException;
 import com.example.exception.UserNotFoundException;
 import com.example.model.Address;
+import com.example.model.AdminPermissions;
 import com.example.model.LoginDetails;
 import com.example.model.Role;
 import com.example.model.User;
@@ -51,6 +54,10 @@ public class UserServiceImpl implements UserService{
 		for (Address address : user.getShippingAddress()) {
 		    address.setUser(user);
 		}
+
+		if(user.getUserRole()==Role.ADMIN) {
+			throw new UnAuthorizedException("You Dont Have Permission to Make User Into Admin");
+		}
 		BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 		String hashedPassword = encoder.encode(user.getUserPassword());
 		user.setUserPassword(hashedPassword);
@@ -60,11 +67,6 @@ public class UserServiceImpl implements UserService{
 		response.setData(user);
 		response.setMessage("New User Added Successfully");
 		return ResponseEntity.ok(response);
-	}
-	
-	public User getUserByType(User user) {
-		
-		return user;
 	}
 
 	public ResponseEntity<ApiResponse<User>> updateUserById(Long userId, User newUser) {
@@ -114,7 +116,11 @@ public class UserServiceImpl implements UserService{
 			
 			throw new UserNotFoundException("User Not Found");
 		}
+
 		User currUser = currentUser.getUser();
+		if((currUser.getUserRole() == Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.User_Manager)) || (currUser.getUserRole() ==Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
+			throw new UnAuthorizedException("You Dont Have Rights To See Admin Details");
+		}
 		if(currUser.getUserId()!= userId) {
 			throw new UnAuthorizedException("Not Authorized");
 		}
@@ -134,7 +140,9 @@ public class UserServiceImpl implements UserService{
 			
 			throw new UserNotFoundException("User Not Found");
 		}
+		
 		User currUser = currentUser.getUser();
+		
 		if(currUser.getUserId()!= userId) {
 			throw new UnAuthorizedException("Not Authorized");
 		}
@@ -148,15 +156,6 @@ public class UserServiceImpl implements UserService{
 		response.setMessage("User Deleted Successfully");
 		return ResponseEntity.ok(response);
 	}
-
-//	public ResponseEntity<ApiResponse<List<User>>> getAllUsers() {
-//		
-//		List<User> list = userRepo.findAll();
-//		ApiResponse<List<User>> response = new ApiResponse<>();
-//		response.setData(list);
-//		response.setMessage("All Users Details");
-//		return ResponseEntity.ok(response);
-//	}
 
 	public ResponseEntity<ApiResponse<User>> changeUserPassword(String eMail, String newPassword) {
 		
@@ -207,12 +206,32 @@ public class UserServiceImpl implements UserService{
 	    userToken.setUserToken(token);
 	    userToken.setGeneratedAt(LocalDateTime.now());
 	    userToken.setUser(user);
-	    userRepo.save(user);
 	    userTokenRepo.save(userToken);
 	    
 		ApiResponse<User> response = new ApiResponse<>();
 		response.setMessage("Welcome User");
 		response.setData(user);
+		return ResponseEntity.ok(response);
+	}
+	
+	public ResponseEntity<ApiResponse<User>> updateUserRole(Set<AdminPermissions> permissions, Long userId, Long adminId) {
+		
+		Optional<User> exists = userRepo.findById(userId);
+		
+		if(!exists.isPresent()) {
+			throw new UserNotFoundException("User Not Found");
+		}
+		User currUser = currentUser.getUser();
+		if((currUser.getUserRole() == Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Product_Manager)) || (currUser.getUserRole() ==Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
+			throw new UnAuthorizedException("You Dont Have Rights To Update User Roles");
+		}
+		exists.get().setUserRole(Role.ADMIN);
+	    for (AdminPermissions permission : exists.get().getUserPermissions()) {
+	        permissions.add(permission);
+	    }
+		ApiResponse<User> response = new ApiResponse<>();
+		response.setData(currUser);
+		response.setMessage("User Role Updated Successfully");
 		return ResponseEntity.ok(response);
 	}
 	

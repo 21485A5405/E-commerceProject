@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.model.OrderProduct;
+import com.example.model.OrderStatus;
+import com.example.model.PaymentStatus;
 import com.example.service.OrderService;
 
 @RestController
@@ -41,18 +43,17 @@ public class OrderController {
 	
 	@GetMapping("/get-by-order-status/{status}")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<ApiResponse<List<OrderProduct>>> getOrders(@PathVariable String status) {
+	public ResponseEntity<ApiResponse<List<OrderProduct>>> getOrders(@PathVariable OrderStatus status) {
 		return orderService.getOrderStatus(status);
 	}
 	
 	@GetMapping("/get-by-payment-status/{paymentStatus}")
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<ApiResponse<List<OrderProduct>>> getOrder(@PathVariable String paymentStatus) {
+	public ResponseEntity<ApiResponse<List<OrderProduct>>> getOrder(@PathVariable PaymentStatus paymentStatus) {
 		return orderService.getOrderByPayment(paymentStatus);
 	}
 	
 	@GetMapping("/getall")
-	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<ApiResponse<List<OrderProduct>>> getAll() {
 		return orderService.getAllOrders();
 	}

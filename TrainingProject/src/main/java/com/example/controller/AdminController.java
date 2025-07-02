@@ -32,10 +32,10 @@ public class AdminController {
 		this.orderService = orderService;
 	}
 	
-	@PostMapping("/register-admin")
-	public ResponseEntity<ApiResponse<User>> adminData(@RequestBody User admin) {
-		return adminService.createAdmin(admin);
-	}
+//	@PostMapping("/register-admin")
+//	public ResponseEntity<ApiResponse<User>> adminData(@RequestBody User admin) {
+//		return adminService.createAdmin(admin);
+//	}
 	
 	@GetMapping("/get-admin-by-id/{adminId}")
 	public ResponseEntity<ApiResponse<User>> getAdmin(@PathVariable Long adminId) {
@@ -76,7 +76,7 @@ public class AdminController {
 		return adminService.deleteAdminById(adminId);
 	}
 	
-	@GetMapping("/getall")
+	@GetMapping("/getall-orders")
 	public ResponseEntity<ApiResponse<List<OrderProduct>>> getAll() {
 		return orderService.getAllOrders();
 	}

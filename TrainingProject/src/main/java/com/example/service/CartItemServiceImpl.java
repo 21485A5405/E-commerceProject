@@ -12,8 +12,10 @@ import com.example.exception.CustomException;
 import com.example.exception.ProductNotFoundException;
 import com.example.exception.UnAuthorizedException;
 import com.example.exception.UserNotFoundException;
+import com.example.model.AdminPermissions;
 import com.example.model.CartItem;
 import com.example.model.Product;
+import com.example.model.Role;
 import com.example.model.User;
 import com.example.repo.CartItemRepo;
 import com.example.repo.ProductRepo;
@@ -46,13 +48,18 @@ public class CartItemServiceImpl implements CartItemService{
 		Optional<CartItem> itemExist = cartItemRepo.findByUserAndProduct(userId, productId);
 		
 		if(!p.isPresent()) {
-			throw new ProductNotFoundException("Product Not Found/ Exists to Add Into Cart");
+			throw new ProductNotFoundException("Product Not Found to Add Into Cart");
 		}else if(!u.isPresent()) {
 			throw new UserNotFoundException("User Not Found");
 		}
+		
 		User currUser = currentUser.getUser();
 		if(currUser.getUserId()!= userId) {
-			throw new UnAuthorizedException("Not Authorized");
+			throw new UnAuthorizedException("User Not Authorized to Add Product Into Another Account");
+		}
+		
+		if(quantity <= 0) {
+			throw new CustomException("Quantity must be Greater than 0");
 		}
 		
 		Product product =p.get();
@@ -103,7 +110,7 @@ public class CartItemServiceImpl implements CartItemService{
 		}
 		User currUser = currentUser.getUser();
 		if(currUser.getUserId()!= userId) {
-			throw new UnAuthorizedException("Not Authorized");
+			throw new UnAuthorizedException("Not Authorized To See Another User Cart Details");
 		}
 		
 			CartItem cartItem = c.get();
@@ -122,7 +129,7 @@ public class CartItemServiceImpl implements CartItemService{
 		}
 		User currUser = currentUser.getUser();
 		if(currUser.getUserId()!= userId) {
-			throw new UnAuthorizedException("Not Authorized");
+			throw new UnAuthorizedException("Not Authorized to Delete Another User Cart Details");
 		}
 		
 		cartItemRepo.deleteByUserAndProduct(userId, productId);
@@ -141,7 +148,7 @@ public class CartItemServiceImpl implements CartItemService{
 		}
 		User currUser = currentUser.getUser();
 		if(currUser.getUserId()!= userId) {
-			throw new UnAuthorizedException("Not Authorized");
+			throw new UnAuthorizedException("Not Authorized To See Another User Cart Details");
 		}
 		
 		ApiResponse<List<CartItem>> response = new ApiResponse<>();
@@ -161,7 +168,7 @@ public class CartItemServiceImpl implements CartItemService{
 		}
 		User currUser = currentUser.getUser();
 		if(currUser.getUserId()!= userId) {
-			throw new UnAuthorizedException("Not Authorized");
+			throw new UnAuthorizedException("Not Authorized To Update Another User Cart Details");
 		}
 		
 		CartItem cartItem = c.get();
@@ -185,7 +192,7 @@ public class CartItemServiceImpl implements CartItemService{
 		}
 		User currUser = currentUser.getUser();
 		if(currUser.getUserId()!= userId) {
-			throw new UnAuthorizedException("Not Authorized");
+			throw new UnAuthorizedException("Not Authorized To Delete Another User Cart Details");
 		}
 		
 		cartItemRepo.deleteAllByUser(userId);

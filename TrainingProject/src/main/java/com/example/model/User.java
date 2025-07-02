@@ -1,5 +1,6 @@
 package com.example.model;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -40,24 +41,25 @@ public class User {
 	@OneToMany(mappedBy = "user")
 	private List<CartItem> cartItems;
 	
-	@ElementCollection
-    @CollectionTable(name = "userPermissions", joinColumns = @JoinColumn(name = "userId"))
-	private Set<String> permissions;
+	@ElementCollection(targetClass = AdminPermissions.class)
+	@CollectionTable(name = "user_permissions", joinColumns = @JoinColumn(name = "user_id"))
+	@Enumerated(EnumType.STRING)
+	private Set<AdminPermissions> userPermissions = new HashSet<>();
 	
+	public Set<AdminPermissions> getUserPermissions() {
+		return userPermissions;
+	}
+
+	public void setUserPermissions(Set<AdminPermissions> userPermissions) {
+		this.userPermissions = userPermissions;
+	}
+
 	public List<CartItem> getCartItems() {
 		return cartItems;
 	}
 
 	public void setCartItems(List<CartItem> cartItems) {
 		this.cartItems = cartItems;
-	}
-
-	public Set<String> getPermissions() {
-		return permissions;
-	}
-
-	public void setPermissions(Set<String> permissions) {
-		this.permissions = permissions;
 	}
 
 	public User() {

@@ -3,8 +3,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.example.authentication.CurrentUser;
@@ -13,6 +11,7 @@ import com.example.exception.CustomException;
 import com.example.exception.ProductNotFoundException;
 import com.example.exception.UnAuthorizedException;
 import com.example.exception.UserNotFoundException;
+import com.example.model.AdminPermissions;
 import com.example.model.Product;
 import com.example.model.Role;
 import com.example.model.User;
@@ -43,10 +42,12 @@ public class ProductServiceImpl implements ProductService{
 			
 			throw new UserNotFoundException("User Not Found");
 		}
-		if (!user.get().getUserRole().equals(Role.ADMIN)) {
-		    throw new UnAuthorizedException("You Don't Have Authorization To Add Product");
+		
+		User currUser = currentUser.getUser();
+		if((currUser.getUserRole() == Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Product_Manager)) || (currUser.getUserRole() ==Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
+			throw new UnAuthorizedException("You Dont Have Rights To See Admin Details");
 		}
-
+		
 		if(product == null) {
 			throw new ProductNotFoundException("Product Cannot be Empty");
 		}else if(product.getProductName() == null) {
@@ -78,11 +79,9 @@ public class ProductServiceImpl implements ProductService{
 			throw new ProductNotFoundException("Product Not Found");
 		}
 		
-		Optional<User> user = userRepo.findById(userId);
-		
-		if(!user.isPresent() || user.get().getUserRole() !=Role.ADMIN) {
-			throw new UnAuthorizedException("User Not Found / You Dont Have Authorization to Update Product");
-			
+		User currUser = currentUser.getUser();
+		if((currUser.getUserRole() == Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Product_Manager)) || (currUser.getUserRole() ==Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
+			throw new UnAuthorizedException("You Dont Have Rights To See Admin Details");
 		}
 			Product product = exists.get();
 			product.setProductName(newProduct.getProductName());
@@ -111,7 +110,6 @@ public class ProductServiceImpl implements ProductService{
 		return ResponseEntity.ok(response);
 	}
 
-	@PreAuthorize("hasRole('ADMIN')")
 	@Transactional
 	public ResponseEntity<ApiResponse<Product>> deleteById(Long productId, Long userId) {
 		
@@ -125,9 +123,12 @@ public class ProductServiceImpl implements ProductService{
 		if(!user.isPresent()) {
 			throw new UnAuthorizedException("User Not Found");
 		}
-		if(user.get().getUserRole() != Role.ADMIN) {
-			
-			throw new UnAuthorizedException("You Dont Have Authorization to Delete Product");
+		User currUser = currentUser.getUser();
+		if(currUser.getUserRole() ==Role.CUSTOMER) {
+			throw new UnAuthorizedException("User Not Allowed to Delete Product");
+		}
+		if((currUser.getUserRole() == Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Product_Manager)) || (currUser.getUserRole() ==Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
+			throw new UnAuthorizedException("You Dont Have Rights To See Admin Details");
 		}
 			productRepo.deleteById(productId);
 			Product product = exists.get();

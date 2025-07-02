@@ -54,7 +54,7 @@ public class OrderServiceImpl implements OrderService{
 	    
 	    User currUser = currentUser.getUser();
 		if(currUser.getUserId()!= userId) {
-			throw new UnAuthorizedException("Not Authorized");
+			throw new UnAuthorizedException("Not Authorized to Place Order with Another User ID");
 		}
 	    
 	    if (!findUser.isPresent()) {
@@ -81,7 +81,6 @@ public class OrderServiceImpl implements OrderService{
 	 	    Product product = findProduct.get();
 	 	    order.setUser(user);
 	 	    order.setOrderDate(LocalDateTime.now());
-	 	    order.setTotalPrice(cartItem.getTotalPrice());
 	 	    Address address = addressExists.get();
 	 	    order.setShippingAddress(address.getFullAddress());
 	 	    order.setOrderStatus(OrderStatus.PROCESSING);
@@ -94,13 +93,12 @@ public class OrderServiceImpl implements OrderService{
 	 	    }
 	 	    orderItem.setOrder(order);
 	 	    orderItem.setProduct(product);
-	 	    orderItem.setQuantity(cartItem.getProductQuantity());
+	 	    orderItem.setQuantity(quantity);
 	 	    
 	 	    ArrayList<OrderItem> items = new ArrayList<>();
 	 	    items.add(orderItem);
 	 	    order.setItems(items);
-	 	    orderRepo.save(order);
-	 	    
+	 	    orderRepo.save(order); 
 	 	    
 	    }
 	    ApiResponse<OrderProduct> response = new ApiResponse<>();
@@ -116,9 +114,11 @@ public class OrderServiceImpl implements OrderService{
 		
 		User currUser = currentUser.getUser();
 		if(currUser.getUserId()!= userId) {
-			throw new UnAuthorizedException("Not Authorized");
+			throw new UnAuthorizedException("Not Authorized to See Another Users Order Details");
 		}
-		
+		if((currUser.getUserRole() == Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Order_Manager)) || (currUser.getUserRole() ==Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
+			throw new UnAuthorizedException("You Dont Have Rights To See Order Details");
+		}
 		if(orders.isEmpty()) {
 			throw new UserNotFoundException("No Order Details Found with Given User ID");
 		}
@@ -137,7 +137,7 @@ public class OrderServiceImpl implements OrderService{
 	    }
 	    User currUser = currentUser.getUser();
 		if(currUser.getUserId()!= userId) {
-			throw new UnAuthorizedException("Not Authorized");
+			throw new UnAuthorizedException("Not Authorized to Cancel Order With Another Account");
 		}
 		
 	    OrderProduct order = orderExists.get();
@@ -181,9 +181,11 @@ public class OrderServiceImpl implements OrderService{
 		
 		User currUser = currentUser.getUser();
 		if(currUser.getUserId()!= userId) {
-			throw new UnAuthorizedException("Not Authorized");
+			throw new UnAuthorizedException("Not Authorized to See Another User Order Details");
 		}
-		
+		if((currUser.getUserRole() == Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Order_Manager)) || (currUser.getUserRole() ==Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
+			throw new UnAuthorizedException("You Dont Have Rights To See Order Details");
+		}
 		ApiResponse<List<OrderProduct>> response = new ApiResponse<>();
 		response.setData(orders);
 		response.setMessage("Orders Details");
@@ -197,7 +199,9 @@ public class OrderServiceImpl implements OrderService{
 		if(currUser.getUserRole()!= Role.ADMIN) {
 			throw new UnAuthorizedException("User Not Authorized to See All Orders");
 		}
-		
+		if((currUser.getUserRole() == Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Order_Manager)) || (currUser.getUserRole() ==Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
+			throw new UnAuthorizedException("You Dont Have Rights To See Admin Details");
+		}
 		ApiResponse<List<OrderProduct>> response = new ApiResponse<>();
 		response.setData(orderList);
 		response.setMessage("All Orders Details");
@@ -215,7 +219,15 @@ public class OrderServiceImpl implements OrderService{
 		if(currUser.getUserRole()!= Role.ADMIN) {
 			throw new UnAuthorizedException("User Not Allowed to See Order Statuses");
 		}
-		
+		if((currUser.getUserRole() == Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Order_Manager)) || (currUser.getUserRole() ==Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
+			throw new UnAuthorizedException("You Dont Have Rights To See Order Status Details");
+		}
+//		List<OrderProduct> orderList = new ArrayList<>();
+//		for(OrderProduct order : orderList) {
+//			if(order.getOrderStatus().equals(status)) {
+//				orderList.add(order);
+//			}
+//		}
 		ApiResponse<List<OrderProduct>> response = new ApiResponse<>();
 		response.setData(orders);
 		response.setMessage("Order Details with Order Status "+status);
@@ -230,12 +242,12 @@ public class OrderServiceImpl implements OrderService{
 		if(currUser.getUserRole()!= Role.ADMIN) {
 			throw new UnAuthorizedException("User Not Allowed to See Payment Statuses");
 		}
-		
 		if(orders.isEmpty()) {
 			throw new CustomException("No Orders Found With Payment Status "+paymentStatus);
 		}
-		
-		
+		if((currUser.getUserRole() == Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Order_Manager)) || (currUser.getUserRole() ==Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
+			throw new UnAuthorizedException("You Dont Have Rights To See Payment Details");
+		}
 		ApiResponse<List<OrderProduct>> response = new ApiResponse<>();
 		response.setData(orders);
 		response.setMessage("Order Details with Payment Status "+paymentStatus);
