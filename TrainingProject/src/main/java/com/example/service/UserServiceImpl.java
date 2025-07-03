@@ -108,10 +108,10 @@ public class UserServiceImpl implements UserService{
 		
 		oldUser.setUserName(newUser.getUserName());
 		oldUser.setUserEmail(newUser.getUserEmail());
-		oldUser.setUserPassword(newUser.getUserPassword());
+		BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+		oldUser.setUserPassword(encoder.encode(newUser.getUserPassword()));
 		oldUser.setShippingAddress(newUser.getShippingAddress());
 		oldUser.setPaymentDetails(newUser.getPaymentDetails());
-		oldUser.setUserRole(newUser.getUserRole());
 		
 		userRepo.save(oldUser);
 		ApiResponse<User> response = new ApiResponse<>();
@@ -131,6 +131,11 @@ public class UserServiceImpl implements UserService{
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
 		}
+		if (currUser.getUserRole() == Role.ADMIN &&
+			    !(currUser.getUserPermissions().contains(AdminPermissions.User_Manager) ||
+					      currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
+					    throw new UnAuthorizedException("You don't have Rights to Update user Roles");
+			}
 		if(currUser.getUserId()!= userId) {
 			throw new UnAuthorizedException("Not Allowed to Get Another User Details");
 		}

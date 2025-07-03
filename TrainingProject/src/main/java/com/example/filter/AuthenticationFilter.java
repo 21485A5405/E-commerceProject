@@ -44,9 +44,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                 .orElseThrow(() -> new UnAuthorizedException("Invalid or expired token"));
 
             currentUser.setUser(userToken.getUser());
-
         }
-
         filterChain.doFilter(request, response);
     }
 }

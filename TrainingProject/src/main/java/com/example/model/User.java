@@ -52,7 +52,6 @@ public class User {
 	@ElementCollection(targetClass = AdminPermissions.class, fetch = FetchType.EAGER)
 	@CollectionTable(name = "userPermissions", joinColumns = @JoinColumn(name = "userId"))
 	@Enumerated(EnumType.STRING)
-	@JsonIgnore
 	private Set<AdminPermissions> userPermissions;
 	
 	public Set<AdminPermissions> getUserPermissions() {
