@@ -121,18 +121,14 @@ public class ProductServiceImpl implements ProductService{
 	}
 
 	@Transactional
-	public ResponseEntity<ApiResponse<Product>> deleteById(Long productId, Long userId) {
+	public ResponseEntity<ApiResponse<Product>> deleteById(Long productId) {
 		
 		Optional<Product> exists = productRepo.findById(productId);
 		if(!exists.isPresent()) {
 			throw new ProductNotFoundException("Product Not Found");
 			
 		}
-		Optional<User> user = userRepo.findById(userId);
 		
-		if(!user.isPresent()) {
-			throw new UnAuthorizedException("User Not Found");
-		}
 		User currUser = currentUser.getUser();
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
@@ -143,12 +139,10 @@ public class ProductServiceImpl implements ProductService{
 		if (currUser.getUserRole() == Role.ADMIN &&
 			    !(currUser.getUserPermissions().contains(AdminPermissions.Product_Manager) ||
 			      currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
-			    throw new UnAuthorizedException("You don't have rights to update user roles");
+			    throw new UnAuthorizedException("Only Product Manager or Manager Can Delete Product");
 			}
 			productRepo.deleteById(productId);
-			Product product = exists.get();
 			ApiResponse<Product> response = new ApiResponse<>();
-			response.setData(product);
 			response.setMessage("Product Deleted Successfully");
 			return ResponseEntity.ok(response);
 	}

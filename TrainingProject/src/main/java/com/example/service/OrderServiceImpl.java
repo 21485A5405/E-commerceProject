@@ -177,7 +177,6 @@ public class OrderServiceImpl implements OrderService{
 
 	    ApiResponse<OrderProduct> response = new ApiResponse<>();
 	    response.setMessage("Order cancelled successfully");
-	    response.setData(order);
 	    return ResponseEntity.ok(response);
 	}
 

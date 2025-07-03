@@ -120,6 +120,4 @@ public class User {
 	public void setShippingAddress(List<Address> shippingAddress) {
 		this.shippingAddress = shippingAddress;
 	}
-	
-
 }

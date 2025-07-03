@@ -42,9 +42,9 @@ public class ProductController {
 		return productService.getProductById(productId);
 	}
 	
-	@DeleteMapping("/delete-by-id/{productId}/{userId}")
-	public ResponseEntity<ApiResponse<Product>> deleteById(@PathVariable Long productId, @PathVariable Long userId) {
-		return productService.deleteById(productId, userId);
+	@DeleteMapping("/delete-by-id/{productId}")
+	public ResponseEntity<ApiResponse<Product>> deleteById(@PathVariable Long productId) {
+		return productService.deleteById(productId);
 	}
 	
 	@GetMapping("/get-product-by-category/{category}")

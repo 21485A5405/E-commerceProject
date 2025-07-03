@@ -5,11 +5,14 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.example.model.User;
 import com.example.model.UserToken;
+
+import jakarta.transaction.Transactional;
 
 public interface UserTokenRepo extends JpaRepository<UserToken, Long>{
 	
@@ -19,6 +22,11 @@ public interface UserTokenRepo extends JpaRepository<UserToken, Long>{
 	
 	@Query("SELECT u FROM UserToken u WHERE u.generatedAt <= :expiry")
 	List<UserToken> findExpiredTokens(@Param("expiry") LocalDateTime expiry);
+
+	 @Modifying
+    @Transactional
+    @Query("DELETE FROM OrderProduct o WHERE o.user.userId = :userId")
+    void deleteAllByUserId(@Param("userId") Long userId);
 
 
 }

@@ -25,7 +25,4 @@ public interface UserService {
 
 	public ResponseEntity<ApiResponse<User>> updateUserRole(Set<AdminPermissions> permissions, Long userId);
 
-
-	
-
 }

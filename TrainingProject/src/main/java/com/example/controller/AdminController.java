@@ -17,7 +17,6 @@ import com.example.model.OrderProduct;
 import com.example.model.Product;
 import com.example.model.User;
 import com.example.service.AdminService;
-import com.example.service.OrderService;
 
 @RestController
 @RequestMapping("/admins")
@@ -25,11 +24,9 @@ public class AdminController {
 	
 
 	private AdminService adminService;
-	private OrderService orderService;
 	
-	public AdminController(AdminService adminService, OrderService orderService) {
+	public AdminController(AdminService adminService) {
 		this.adminService = adminService;
-		this.orderService = orderService;
 	}
 	
 //	@PostMapping("/register-admin")
@@ -57,7 +54,7 @@ public class AdminController {
 		return adminService.getAllProducts();
 	}
 	
-	@GetMapping
+	@GetMapping("/get-all-users")
 	public ResponseEntity<ApiResponse<List<User>>> getAllUsers() {
 		return adminService.getAllUsers();
 	}
@@ -77,7 +74,7 @@ public class AdminController {
 		return adminService.deleteAdminById(adminId);
 	}
 	
-	@GetMapping("/getall-orders")
+	@GetMapping("/get-all-orders")
 	public ResponseEntity<ApiResponse<List<OrderProduct>>> getAll() {
 		return adminService.getAllOrders();
 	}

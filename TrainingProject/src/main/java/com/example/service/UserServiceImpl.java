@@ -97,8 +97,6 @@ public class UserServiceImpl implements UserService{
 			throw new UserNotFoundException("UserEmail Cannot be Empty");
 		}else if(newUser.getUserPassword() == null) {
 			throw new UserNotFoundException("UserPassword Cannot be Empty");
-		}else if(newUser.getUserRole() == null) {
-			throw new UserNotFoundException("UserRole Cannot be Empty");
 		}else if(newUser.getShippingAddress() == null) {
 			throw new UserNotFoundException("Shipping Address Cannot be Empty");
 		}else if(newUser.getPaymentDetails() == null) {
@@ -110,7 +108,14 @@ public class UserServiceImpl implements UserService{
 		oldUser.setUserEmail(newUser.getUserEmail());
 		BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 		oldUser.setUserPassword(encoder.encode(newUser.getUserPassword()));
-		oldUser.setShippingAddress(newUser.getShippingAddress());
+		
+		if (newUser.getShippingAddress() != null) {
+		    for (Address address : newUser.getShippingAddress()) {
+		        address.setUser(newUser);
+		    }
+		} else {
+		    oldUser.setShippingAddress(new ArrayList<>());
+		}
 		oldUser.setPaymentDetails(newUser.getPaymentDetails());
 		
 		userRepo.save(oldUser);
@@ -166,10 +171,9 @@ public class UserServiceImpl implements UserService{
 		
 		cartItemRepo.deleteAllByUser(userId);
 		orderRepo.deleteAllByUserId(userId);
+		userTokenRepo.deleteAllByUserId(userId);
 		userRepo.deleteById(userId);
-		User user = exists.get();
 		ApiResponse<User> response = new ApiResponse<>();
-		response.setData(user);
 		response.setMessage("User Deleted Successfully");
 		return ResponseEntity.ok(response);
 	}
@@ -211,7 +215,7 @@ public class UserServiceImpl implements UserService{
 			throw new CustomException("User DoesNot Exists Please Register");
 		}
 		
-		if(exists.get().getUserRole()==Role.CUSTOMER) {
+		if(exists.get().getUserRole() != Role.CUSTOMER) {
 			throw new UnAuthorizedException("Please Provide User Credentials");
 		}
 		
@@ -251,7 +255,6 @@ public class UserServiceImpl implements UserService{
 			      currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
 			    throw new UnAuthorizedException("You don't have Rights to Update user Roles");
 			}
-
 		exists.get().setUserRole(Role.ADMIN);
 		exists.get().setUserPermissions(new HashSet<>(permissions));
 		

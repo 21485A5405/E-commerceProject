@@ -13,7 +13,7 @@ public interface ProductService {
 	
 	public ResponseEntity<ApiResponse<Product>> productUpdate(Long productId, Product product, Long userId);
 	
-	public ResponseEntity<ApiResponse<Product>> deleteById(Long productId, Long userId);
+	public ResponseEntity<ApiResponse<Product>> deleteById(Long productId);
 	
 	public ResponseEntity<ApiResponse<Product>> getProductById(Long productId);
 	

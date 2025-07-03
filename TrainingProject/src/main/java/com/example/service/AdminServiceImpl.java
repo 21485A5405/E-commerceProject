@@ -287,7 +287,8 @@ public class AdminServiceImpl implements AdminService{
 			throw new UnAuthorizedException("Please Login");
 		}
 		if (currUser.getUserRole() == Role.ADMIN &&
-					      currUser.getUserPermissions().contains(AdminPermissions.Manager)) {
+			    !(currUser.getUserPermissions().contains(AdminPermissions.Product_Manager) ||
+					      currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
 					    throw new UnAuthorizedException("You don't have rights to See user Details");
 					}
 		for(User user : users) {
@@ -309,8 +310,10 @@ public class AdminServiceImpl implements AdminService{
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
 		}
-		if((currUser.getUserRole() == Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Product_Manager)) || (currUser.getUserRole() ==Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
-			throw new UnAuthorizedException("You Dont Have Rights To See Admin Details");
+		if(currUser.getUserRole() == Role.ADMIN &&
+			    !(currUser.getUserPermissions().contains(AdminPermissions.Product_Manager) ||
+					      currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
+			throw new UnAuthorizedException("Only Manager and Product Manager Have Rights To See All Products Details");
 		}
 		ApiResponse<List<Product>> response = new ApiResponse<>();
 		response.setData(products);
