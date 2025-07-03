@@ -3,7 +3,6 @@ package com.example.service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -68,6 +67,7 @@ public class UserServiceImpl implements UserService{
 			String hashedPassword = encoder.encode(user.getUserPassword());
 			user.setUserPassword(hashedPassword);
 			user.setUserRole(Role.CUSTOMER);
+			user.setUserPermissions(Set.of());
 			userRepo.save(user);
 		}
 		ApiResponse<User> response = new ApiResponse<>();
@@ -211,7 +211,7 @@ public class UserServiceImpl implements UserService{
 			throw new CustomException("User DoesNot Exists Please Register");
 		}
 		
-		if(exists.get().getUserRole()!=Role.CUSTOMER) {
+		if(exists.get().getUserRole()==Role.CUSTOMER) {
 			throw new UnAuthorizedException("Please Provide User Credentials");
 		}
 		

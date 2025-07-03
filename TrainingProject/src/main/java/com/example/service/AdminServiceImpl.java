@@ -163,6 +163,7 @@ public class AdminServiceImpl implements AdminService{
 			
 			throw new AdminNotFoundException("Admin Not Found");
 		}
+		
 		User currUser = currentUser.getUser();
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
