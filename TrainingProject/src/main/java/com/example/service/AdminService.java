@@ -15,7 +15,7 @@ public interface AdminService {
 
 	public ResponseEntity<ApiResponse<User>> getAdminById(Long adminId);
 
-	public ResponseEntity<User> updateAdminById(Long adminId, User newAdmin);
+	public ResponseEntity<ApiResponse<User>> updateAdminById(Long adminId, User newAdmin);
 
 	public ResponseEntity<ApiResponse<User>> deleteAdminById(Long adminId);
 

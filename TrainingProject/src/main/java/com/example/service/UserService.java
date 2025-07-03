@@ -23,7 +23,7 @@ public interface UserService {
 
 	public ResponseEntity<ApiResponse<?>> loginUser(LoginDetails details);
 
-	public ResponseEntity<ApiResponse<User>> updateUserRole(Set<AdminPermissions> permissions, Long adminId, Long adminId2);
+	public ResponseEntity<ApiResponse<User>> updateUserRole(Set<AdminPermissions> permissions, Long userId);
 
 
 	

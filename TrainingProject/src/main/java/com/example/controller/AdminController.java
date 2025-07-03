@@ -66,8 +66,9 @@ public class AdminController {
 	public List<Long> getProducts() {
 		return adminService.getAllProductIds();
 	}
+	
 	@PutMapping("/update-admin/{adminId}")
-	public ResponseEntity<User> updateAdmin(@PathVariable Long adminId, @RequestBody User newAdmin) {
+	public ResponseEntity<ApiResponse<User>> updateAdmin(@PathVariable Long adminId, @RequestBody User newAdmin) {
 		return adminService.updateAdminById(adminId, newAdmin);
 	}
 

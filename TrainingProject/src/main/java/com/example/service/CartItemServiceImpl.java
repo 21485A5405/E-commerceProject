@@ -52,9 +52,11 @@ public class CartItemServiceImpl implements CartItemService{
 		}else if(!u.isPresent()) {
 			throw new UserNotFoundException("User Not Found");
 		}
-		User currUser = Optional.ofNullable(currentUser.getUser())
-			    .orElseThrow(() -> new UnAuthorizedException("Please login to access this resource"));
 		
+		User currUser = currentUser.getUser();
+		if(currUser == null) {
+			throw new UnAuthorizedException("Please Login");
+		}
 		if(currUser.getUserId()!= userId) {
 			throw new UnAuthorizedException("User Not Authorized to Add Product Into Another Account");
 		}
@@ -105,8 +107,10 @@ public class CartItemServiceImpl implements CartItemService{
 		if(!c.isPresent()) {
 			throw new UserNotFoundException("User with respective Product Not Found In Cart");
 		}
-		User currUser = Optional.ofNullable(currentUser.getUser())
-			    .orElseThrow(() -> new UnAuthorizedException("Please login to access this resource"));
+		User currUser = currentUser.getUser();
+		if(currUser == null) {
+			throw new UnAuthorizedException("Please Login");
+		}
 		if(currUser.getUserId()!= userId) {
 			throw new UnAuthorizedException("Not Authorized To See Another User Cart Details");
 		}
@@ -125,8 +129,10 @@ public class CartItemServiceImpl implements CartItemService{
 		if (!exists.isPresent()) {
 		    throw new ProductNotFoundException("No Items Found For That Product ID and User ID to Delete");
 		}
-		User currUser = Optional.ofNullable(currentUser.getUser())
-			    .orElseThrow(() -> new UnAuthorizedException("Please login to access this resource"));
+		User currUser = currentUser.getUser();
+		if(currUser == null) {
+			throw new UnAuthorizedException("Please Login");
+		}
 		if(currUser.getUserId()!= userId) {
 			throw new UnAuthorizedException("Not Authorized to Delete Another User Cart Details");
 		}
@@ -146,6 +152,9 @@ public class CartItemServiceImpl implements CartItemService{
 			throw new UserNotFoundException("User Not Found");
 		}
 		User currUser = currentUser.getUser();
+		if(currUser == null) {
+			throw new UnAuthorizedException("Please Login");
+		}
 		if(currUser.getUserId()!= userId) {
 			throw new UnAuthorizedException("Not Authorized To See Another User Cart Details");
 		}
@@ -166,6 +175,9 @@ public class CartItemServiceImpl implements CartItemService{
 			throw new ProductNotFoundException("No Product Found ");
 		}
 		User currUser = currentUser.getUser();
+		if(currUser == null) {
+			throw new UnAuthorizedException("Please Login");
+		}
 		if(currUser.getUserId()!= userId) {
 			throw new UnAuthorizedException("Not Authorized To Update Another User Cart Details");
 		}
@@ -190,6 +202,9 @@ public class CartItemServiceImpl implements CartItemService{
 			throw new UserNotFoundException("User Not Found");
 		}
 		User currUser = currentUser.getUser();
+		if(currUser == null) {
+			throw new UnAuthorizedException("Please Login");
+		}
 		if(currUser.getUserId()!= userId) {
 			throw new UnAuthorizedException("Not Authorized To Delete Another User Cart Details");
 		}

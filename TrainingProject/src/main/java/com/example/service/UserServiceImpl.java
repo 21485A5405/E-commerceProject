@@ -60,7 +60,6 @@ public class UserServiceImpl implements UserService{
 		    user.setShippingAddress(new ArrayList<>());
 		}
 
-
 		if(user.getUserRole()!=null && user.getUserRole()==Role.ADMIN) {
 			throw new UnAuthorizedException("You Dont Have Permission to Make User Into Admin");
 		}
@@ -231,7 +230,7 @@ public class UserServiceImpl implements UserService{
 	}
 	
 	@Transactional
-	public ResponseEntity<ApiResponse<User>> updateUserRole(Set<AdminPermissions> permissions, Long userId, Long adminId) {
+	public ResponseEntity<ApiResponse<User>> updateUserRole(Set<AdminPermissions> permissions, Long userId) {
 		
 		Optional<User> exists = userRepo.findById(userId);
 		

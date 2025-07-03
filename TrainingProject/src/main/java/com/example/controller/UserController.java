@@ -58,9 +58,9 @@ public class UserController {
 		
 	}
 	
-	@PutMapping("/update-user-role/{userId}/{adminId}")
-	public ResponseEntity<ApiResponse<User>> updateRole(@RequestBody Set<AdminPermissions> permissions, @PathVariable Long userId, @PathVariable Long adminId) {
+	@PutMapping("/update-user-role/{userId}")
+	public ResponseEntity<ApiResponse<User>> updateRole(@RequestBody Set<AdminPermissions> permissions, @PathVariable Long userId) {
 		
-		return userService.updateUserRole(permissions, userId, adminId);
+		return userService.updateUserRole(permissions, userId);
 	}
 }

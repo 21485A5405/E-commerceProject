@@ -21,9 +21,7 @@ public interface UserRepo extends JpaRepository<User, Long> {
 	
 	Optional<User> findByUserRole(Role role);
 	
-	
 	@Query("SELECT u FROM User u LEFT JOIN FETCH u.userPermissions WHERE u.id = :id")
 	Optional<User> findByIdWithPermissions(@Param("id") Long id);
 
-	
 }

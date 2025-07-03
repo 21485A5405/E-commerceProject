@@ -5,6 +5,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.ElementCollection;
@@ -28,7 +31,9 @@ public class User {
 	private Long userId;
 	private String userName;
 	private String userEmail;
+	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 	private String userPassword;
+
 	
 	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Address> shippingAddress;
@@ -38,6 +43,7 @@ public class User {
     private List<PaymentInfo> paymentDetails;
 
     @Enumerated(EnumType.STRING)
+    @JsonIgnore
     private Role userRole;
 	
 	@OneToMany(mappedBy = "user")
@@ -46,6 +52,7 @@ public class User {
 	@ElementCollection(targetClass = AdminPermissions.class, fetch = FetchType.EAGER)
 	@CollectionTable(name = "userPermissions", joinColumns = @JoinColumn(name = "userId"))
 	@Enumerated(EnumType.STRING)
+	@JsonIgnore
 	private Set<AdminPermissions> userPermissions;
 	
 	public Set<AdminPermissions> getUserPermissions() {
