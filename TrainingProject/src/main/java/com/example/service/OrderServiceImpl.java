@@ -44,19 +44,19 @@ public class OrderServiceImpl implements OrderService{
 		this.currentUser = currentUser;
 	}
 
-	public ResponseEntity<ApiResponse<OrderProduct>> placeOrder(Long userId, Long productId, int quantity, Long addressId) {
+	public ResponseEntity<ApiResponse<OrderProduct>> placeOrder(PlaceOrder orderDetails) {
 		
 
-	    Optional<User> findUser = userRepo.findById(userId);
-	    Optional<Product> findProduct = productRepo.findById(productId);
-	    Optional<CartItem> cart = cartItemRepo.findByUserAndProduct(userId, productId);
-	    Optional<Address> addressExists = addressRepo.findById(addressId);
+	    Optional<User> findUser = userRepo.findById(orderDetails.getUserId());
+	    Optional<Product> findProduct = productRepo.findById(orderDetails.getProductId());
+	    Optional<CartItem> cart = cartItemRepo.findByUserAndProduct(orderDetails.getUserId(), orderDetails.getProductId());
+	    Optional<Address> addressExists = addressRepo.findById(orderDetails.getAddressId());
 	    
 	    User currUser = currentUser.getUser();
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
 		}
-		if(currUser.getUserId()!= userId) {
+		if(currUser.getUserId()!= orderDetails.getUserId()) {
 			throw new UnAuthorizedException("Not Authorized to Place Order with Another User ID");
 		}
 	    
@@ -71,11 +71,27 @@ public class OrderServiceImpl implements OrderService{
 	        throw new ProductNotFoundException("Please Add Product into Cart to place Order");
 	    }
 	    if(!addressExists.isPresent()) {
-	    	throw new CustomException("No Address Found with Address ID" +addressId);
+	    	throw new CustomException("No Address Found with Address ID" +orderDetails.getAddressId());
 	    }
 	    CartItem cartItem = cart.get();
-	    if(cartItem.getProductQuantity()<quantity) {
-	    	throw new CustomException("Only "+cartItem.getProductQuantity()+" Items Added Into Cart Please Add "+(quantity-cartItem.getProductQuantity())+" items to Place an Order");
+	    if(cartItem.getProductQuantity()<orderDetails.getQuantity()) {
+	    	throw new CustomException("Only "+cartItem.getProductQuantity()+" Items Added Into Cart Please Add "+(orderDetails.getQuantity()-cartItem.getProductQuantity())+" items to Place an Order");
+	    }
+	    
+	    List<PaymentInfo> payment = findUser.get().getPaymentDetails();
+
+	    if (payment == null || payment.isEmpty()) {
+	        throw new CustomException("Payment Method Can Not be Empty");
+	    }
+	    boolean isValid = false;
+	    for (PaymentInfo info : payment) {
+	        if (info.getPaymentMethod() != orderDetails.getPaymentType()) {
+	        	isValid = true;
+	        }
+	        if(isValid) {
+	        	throw new UnAuthorizedException("Payment Method Not Available In Your Account, "
+	        			+ "Available Payments in Your Account "+payment);
+	        }
 	    }
  	    OrderProduct order = new OrderProduct();
  	    OrderItem orderItem = new OrderItem();
@@ -88,15 +104,15 @@ public class OrderServiceImpl implements OrderService{
 	 	    order.setShippingAddress(address.getFullAddress());
 	 	    order.setOrderStatus(OrderStatus.PROCESSING);
 	 	    order.setPaymentStatus(PaymentStatus.PAID);
-	 	    order.setTotalPrice(quantity*product.getProductPrice());
-	 	    cartItem.setProductQuantity(cartItem.getProductQuantity()-quantity);
+	 	    order.setTotalPrice(orderDetails.getQuantity()*product.getProductPrice());
+	 	    cartItem.setProductQuantity(cartItem.getProductQuantity()-orderDetails.getQuantity());
 	 	    cartItem.setTotalPrice(cartItem.getProductQuantity()*product.getProductPrice());
 	 	    if(cartItem.getProductQuantity() == 0) {
 	 	    	cartItemRepo.delete(cartItem);
 	 	    }
 	 	    orderItem.setOrder(order);
 	 	    orderItem.setProduct(product);
-	 	    orderItem.setQuantity(quantity);
+	 	    orderItem.setQuantity(orderDetails.getQuantity());
 	 	    
 	 	    ArrayList<OrderItem> items = new ArrayList<>();
 	 	    items.add(orderItem);

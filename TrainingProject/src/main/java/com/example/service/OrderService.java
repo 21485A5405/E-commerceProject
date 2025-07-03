@@ -8,12 +8,11 @@ import com.example.controller.ApiResponse;
 import com.example.model.OrderProduct;
 import com.example.model.OrderStatus;
 import com.example.model.PaymentStatus;
+import com.example.model.PlaceOrder;
 
 public interface OrderService {
 	
 	public ResponseEntity<ApiResponse<List<OrderProduct>>> getOrderByUser(Long userId);
-	
-	public ResponseEntity<ApiResponse<OrderProduct>> placeOrder(Long userId, Long productId, int quantity, Long addressId);
 
 	public ResponseEntity<ApiResponse<OrderProduct>> cancelOrder(Long userId, Long productId, int quantity);
 
@@ -24,6 +23,8 @@ public interface OrderService {
 	public ResponseEntity<ApiResponse<List<OrderProduct>>> getOrderStatus(OrderStatus status);
 
 	public ResponseEntity<ApiResponse<List<OrderProduct>>> getOrderByPayment(PaymentStatus paymentStatus);
+
+	public ResponseEntity<ApiResponse<OrderProduct>> placeOrder(PlaceOrder orderDetails);
 	
 
 }

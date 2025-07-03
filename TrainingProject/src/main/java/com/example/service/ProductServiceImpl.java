@@ -47,10 +47,13 @@ public class ProductServiceImpl implements ProductService{
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
 		}
+		if(currUser.getUserRole() == Role.CUSTOMER) {
+			throw new UnAuthorizedException("User Dont Have Permission To Add Product");
+		}
 		if (currUser.getUserRole() == Role.ADMIN &&
 			    !(currUser.getUserPermissions().contains(AdminPermissions.Product_Manager) ||
 			      currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
-			    throw new UnAuthorizedException("You don't have rights to update user roles");
+			    throw new UnAuthorizedException("Only Product Manager and Manager Have Rights to Add Product");
 			}
 		
 		if(product == null) {
@@ -88,10 +91,13 @@ public class ProductServiceImpl implements ProductService{
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
 		}
+		if(currUser.getUserRole() == Role.CUSTOMER) {
+			throw new UnAuthorizedException("User Dont Have Permission To Add Product");
+		}
 		if (currUser.getUserRole() == Role.ADMIN &&
 			    !(currUser.getUserPermissions().contains(AdminPermissions.Product_Manager) ||
 			      currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
-			    throw new UnAuthorizedException("You don't have rights to update user roles");
+			    throw new UnAuthorizedException("Onnly Product Manager and Manager Have Rights to Update Product");
 			}
 			Product product = exists.get();
 			product.setProductName(newProduct.getProductName());

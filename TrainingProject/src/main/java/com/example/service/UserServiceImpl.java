@@ -136,6 +136,9 @@ public class UserServiceImpl implements UserService{
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
 		}
+		if(exists.get().getUserRole() == Role.ADMIN) {
+			throw new UnAuthorizedException("User "+userId+ " is Not User");
+		}
 		if (currUser.getUserRole() == Role.ADMIN &&
 			    !(currUser.getUserPermissions().contains(AdminPermissions.User_Manager) ||
 					      currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
