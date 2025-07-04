@@ -23,9 +23,9 @@ public interface UserTokenRepo extends JpaRepository<UserToken, Long>{
 	@Query("SELECT u FROM UserToken u WHERE u.generatedAt <= :expiry")
 	List<UserToken> findExpiredTokens(@Param("expiry") LocalDateTime expiry);
 
-	 @Modifying
+	@Modifying
     @Transactional
-    @Query("DELETE FROM OrderProduct o WHERE o.user.userId = :userId")
+    @Query("DELETE FROM UserToken o WHERE o.user.userId = :userId")
     void deleteAllByUserId(@Param("userId") Long userId);
 
 

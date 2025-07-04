@@ -39,6 +39,6 @@ public interface CartItemRepo extends JpaRepository<CartItem, Long>{
 	@Query("DELETE FROM CartItem op WHERE op.user.userId = :userId")
 	void deleteAllByUser(@Param("userId") Long userId);
 
-	
+	List<CartItem> findByProductId(Long productId);
 
 }

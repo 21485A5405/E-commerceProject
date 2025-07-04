@@ -23,6 +23,7 @@ import com.example.model.AdminPermissions;
 import com.example.model.Role;
 import com.example.model.User;
 import com.example.model.UserToken;
+import com.example.repo.AddressRepo;
 import com.example.repo.CartItemRepo;
 import com.example.repo.OrderRepo;
 import com.example.repo.UserRepo;
@@ -37,13 +38,15 @@ public class UserServiceImpl implements UserService{
 	private UserRepo userRepo;
 	private CurrentUser currentUser;
 	private UserTokenRepo userTokenRepo;
+	private AddressRepo addressRepo;
 	
-	public UserServiceImpl(CartItemRepo cartItemRepo, OrderRepo orderRepo, UserRepo userRepo, UserTokenRepo userTokenRepo, CurrentUser currentUser) {
+	public UserServiceImpl(CartItemRepo cartItemRepo, OrderRepo orderRepo, AddressRepo addressRepo, UserRepo userRepo, UserTokenRepo userTokenRepo, CurrentUser currentUser) {
 		this.cartItemRepo = cartItemRepo;
 		this.orderRepo = orderRepo;
 		this.userRepo = userRepo;
 		this.currentUser = currentUser;
 		this.userTokenRepo = userTokenRepo;
+		this.addressRepo = addressRepo;
 		
 	}
 	public ResponseEntity<ApiResponse<User>> saveUser(RegisterUser user) {
@@ -52,20 +55,28 @@ public class UserServiceImpl implements UserService{
 			throw new CustomException("User Already Exists Please Login");
 		}
 		User newUser = new User();
-		newUser.setUserEmail(user.getUserEmail());
 		if (user.getShippingAddress() != null) {
 		    for (Address address : user.getShippingAddress()) {
 		        address.setUser(newUser);
 		    }
+		    newUser.setShippingAddress(user.getShippingAddress());
 		} else {
-		    user.setShippingAddress(new ArrayList<>());
+		    newUser.setShippingAddress(new ArrayList<>());
 		}
 
+		if (user.getPaymentDetails() != null) {
+		    newUser.setPaymentDetails(user.getPaymentDetails());
+		}else {
+			throw new UnAuthorizedException("Payment Cannot be Null");
+		}
+
+			
 			BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 			String hashedPassword = encoder.encode(user.getUserPassword());
+			newUser.setUserEmail(user.getUserEmail());
+			newUser.setUserName(user.getUserName());
 			newUser.setUserPassword(hashedPassword);
 			newUser.setUserRole(Role.CUSTOMER);
-			newUser.setUserPermissions(new HashSet<>());
 			userRepo.save(newUser);
 
 		ApiResponse<User> response = new ApiResponse<>();
@@ -77,13 +88,12 @@ public class UserServiceImpl implements UserService{
 	public ResponseEntity<ApiResponse<User>> updateUserById(Long userId, User newUser) {
 		
 		Optional<User> u = userRepo.findById(userId);
-		if(!u.isPresent()) {
-			throw new UserNotFoundException("User Not Found");
-		}
-		
 		User currUser = currentUser.getUser();
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
+		}
+		if(!u.isPresent()) {
+			throw new UserNotFoundException("User Not Found");
 		}
 		if(currUser.getUserId() != userId) {
 			throw new UnAuthorizedException("You Are Not Allowed To Update Another User Details");
@@ -109,11 +119,13 @@ public class UserServiceImpl implements UserService{
 		
 		if (newUser.getShippingAddress() != null) {
 		    for (Address address : newUser.getShippingAddress()) {
-		        address.setUser(newUser);
+		        address.setUser(oldUser);
 		    }
+		    oldUser.setShippingAddress(newUser.getShippingAddress());
 		} else {
 		    oldUser.setShippingAddress(new ArrayList<>());
 		}
+
 		oldUser.setPaymentDetails(newUser.getPaymentDetails());
 		
 		userRepo.save(oldUser);
@@ -158,6 +170,7 @@ public class UserServiceImpl implements UserService{
 	public ResponseEntity<ApiResponse<User>> deleteUserById(Long userId) {
 		
 		Optional<User> exists = userRepo.findById(userId);
+		
 		User currUser = currentUser.getUser();
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
@@ -174,6 +187,7 @@ public class UserServiceImpl implements UserService{
 		cartItemRepo.deleteAllByUser(userId);
 		orderRepo.deleteAllByUserId(userId);
 		userTokenRepo.deleteAllByUserId(userId);
+		addressRepo.deleteAllByUserId(userId);
 		userRepo.deleteById(userId);
 		ApiResponse<User> response = new ApiResponse<>();
 		response.setMessage("User Deleted Successfully");
@@ -185,11 +199,11 @@ public class UserServiceImpl implements UserService{
 	    Optional<User> exists = userRepo.findByUserEmail(eMail);
 	    
 	    User currUser = currentUser.getUser();
-		if(currUser == null) {
+	    if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
 		}
 	    if (!exists.isPresent()) {
-	        throw new UnAuthorizedException("Invalid Email");
+	        throw new UnAuthorizedException("No User found with this Email");
 	    }
 
 	    if (newPassword == null || newPassword.length()<=5) {
@@ -223,7 +237,7 @@ public class UserServiceImpl implements UserService{
 		}
 		User currUser = currentUser.getUser();
 		User user = exists.get();
-		if(currUser.getUserId() == user.getUserId()) {
+		if(currUser != null && currUser.getUserId() == user.getUserId()) {
 			throw new CustomException("You Already In Current Session");
 		}
 		UserToken userToken = new UserToken();

@@ -31,21 +31,27 @@ public class AuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        String token = request.getHeader("Authorization");
-        if (token != null && token.startsWith("Bearer ")) {
-            token = token.substring(7);
+    	try {
+	        String token = request.getHeader("Authorization");
+	        if (token != null && token.startsWith("Bearer ")) {
+	            token = token.substring(7);
+	        }
+	
+	        System.out.println("Token received: " + token);
+	
+	
+	        if (token != null && !token.isBlank()) {
+	            UserToken userToken =  userTokenRepo.findByUserToken(token)
+	                .orElseThrow(() -> new UnAuthorizedException("Invalid or expired token"));
+	
+	            currentUser.setUser(userToken.getUser());
+	        }
+	        filterChain.doFilter(request, response);
+    	}catch (UnAuthorizedException ex) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
+            response.setContentType("application/json");
+            response.getWriter().write("{ \"Message\": \"" + ex.getMessage() + "\" }");
         }
-
-        System.out.println("Token received: " + token);
-
-
-        if (token != null && !token.isBlank()) {
-            UserToken userToken =  userTokenRepo.findByUserToken(token)
-                .orElseThrow(() -> new UnAuthorizedException("Invalid or expired token"));
-
-            currentUser.setUser(userToken.getUser());
-        }
-        filterChain.doFilter(request, response);
     }
 }
 

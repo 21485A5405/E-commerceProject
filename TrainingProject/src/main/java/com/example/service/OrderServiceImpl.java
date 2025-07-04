@@ -44,6 +44,7 @@ public class OrderServiceImpl implements OrderService{
 		this.currentUser = currentUser;
 	}
 
+	@Transactional
 	public ResponseEntity<ApiResponse<OrderProduct>> placeOrder(PlaceOrder orderDetails) {
 		
 
@@ -51,7 +52,7 @@ public class OrderServiceImpl implements OrderService{
 	    Optional<Product> findProduct = productRepo.findById(orderDetails.getProductId());
 	    Optional<CartItem> cart = cartItemRepo.findByUserAndProduct(orderDetails.getUserId(), orderDetails.getProductId());
 	    Optional<Address> addressExists = addressRepo.findById(orderDetails.getAddressId());
-	    
+	    List<CartItem> productList = cartItemRepo.findByProductId(orderDetails.getProductId());
 	    User currUser = currentUser.getUser();
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
@@ -110,7 +111,10 @@ public class OrderServiceImpl implements OrderService{
 	 	    order.setTotalPrice(orderDetails.getQuantity()*product.getProductPrice());
 	 	    cartItem.setProductQuantity(cartItem.getProductQuantity()-orderDetails.getQuantity());
 	 	    cartItem.setTotalPrice(cartItem.getProductQuantity()*product.getProductPrice());
-	 	    if(cartItem.getProductQuantity() == 0) {
+	 	    for(CartItem carts :productList) {
+	 	    	carts.setProductQuantity(carts.getProductQuantity()-orderDetails.getQuantity());
+	 	    }
+	 	    if(cartItem.getProductQuantity() <= 0) {
 	 	    	cartItemRepo.delete(cartItem);
 	 	    }
 	 	    orderItem.setOrder(order);
@@ -120,6 +124,7 @@ public class OrderServiceImpl implements OrderService{
 	 	    ArrayList<OrderItem> items = new ArrayList<>();
 	 	    items.add(orderItem);
 	 	    order.setItems(items);
+	 	    cartItemRepo.save(cartItem);
 	 	    orderRepo.save(order); 
 	 	    
 	    }

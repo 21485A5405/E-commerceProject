@@ -17,6 +17,7 @@ import com.example.model.Role;
 import com.example.model.User;
 import com.example.repo.ProductRepo;
 import com.example.repo.UserRepo;
+import com.example.repo.UserTokenRepo;
 
 import jakarta.transaction.Transactional;
 
@@ -89,7 +90,7 @@ public class ProductServiceImpl implements ProductService{
 		}
 		
 		User currUser = currentUser.getUser();
-		if(currUser == null) {
+		if(currUser == null ) {
 			throw new UnAuthorizedException("Please Login");
 		}
 		if(currUser.getUserRole() == Role.CUSTOMER) {

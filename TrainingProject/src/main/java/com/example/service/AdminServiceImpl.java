@@ -174,7 +174,8 @@ public class AdminServiceImpl implements AdminService{
 			throw new AdminNotFoundException("User Not Allowed To Delete Admin Details");
 		}
 		else {
-		
+			
+			userTokenRepo.deleteAllByUserId(adminId);
 			userRepo.deleteById(adminId);
 			ApiResponse<User> response = new ApiResponse<>();
 			response.setMessage("Admin Deleted Successfully");
@@ -259,6 +260,7 @@ public class AdminServiceImpl implements AdminService{
 	 }
 
 	public List<Long> getAllProductIds() {
+		
 		User currUser = currentUser.getUser();
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
@@ -294,7 +296,7 @@ public class AdminServiceImpl implements AdminService{
 			}
 		}
 		ApiResponse<List<User>> response = new ApiResponse<>();
-		response.setData(users);
+		response.setData(getUsers);
 		response.setMessage("Users List");
 		return ResponseEntity.ok(response);
 	}
@@ -324,14 +326,14 @@ public class AdminServiceImpl implements AdminService{
 		
 		if(!adminExists.isPresent()) {
 			
-			throw new AdminNotFoundException("No Email Found");
+			throw new AdminNotFoundException("Invalid Email");
 		}
 		if(adminExists.get().getUserRole()!=Role.ADMIN) {
-			throw new UnAuthorizedException("Please Provide Proper Admin Credentials");
+			throw new UnAuthorizedException(adminExists.get().getUserId()+" is Not Admin Please Provide Admin Details");
 		}
 		User currUser = currentUser.getUser();
 		User user = adminExists.get();
-		if(currUser.getUserId() == user.getUserId()) {
+		if(currUser != null && currUser.getUserId() == user.getUserId()) {
 			throw new CustomException("You Already In Current Session");
 		}
 		UserToken userToken = new UserToken();
@@ -344,7 +346,6 @@ public class AdminServiceImpl implements AdminService{
 	    userToken.setUserToken(token);
 	    userToken.setGeneratedAt(LocalDateTime.now());
 	    userToken.setUser(user);
-	    userRepo.save(user);
 	    userTokenRepo.save(userToken);
 	    
 		ApiResponse<User> response  = new ApiResponse<>();
