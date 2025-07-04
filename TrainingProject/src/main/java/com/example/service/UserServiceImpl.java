@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.DTO.LoginDetails;
 import com.example.DTO.RegisterUser;
+import com.example.DTO.UpdateUser;
 import com.example.authentication.CurrentUser;
 import com.example.controller.ApiResponse;
 import com.example.exception.CustomException;
@@ -61,13 +62,22 @@ public class UserServiceImpl implements UserService{
 		    }
 		    newUser.setShippingAddress(user.getShippingAddress());
 		} else {
-		    newUser.setShippingAddress(new ArrayList<>());
+			throw new CustomException("Shipping Address Cannot be Empty");
 		}
 
 		if (user.getPaymentDetails() != null) {
 		    newUser.setPaymentDetails(user.getPaymentDetails());
 		}else {
 			throw new UnAuthorizedException("Payment Cannot be Null");
+		}
+		if(newUser.getUserName() == null) {
+			throw new CustomException("UserName Cannot be Empty");
+		}else if(newUser.getUserEmail() == null) {
+			throw new CustomException("UserEmail Cannot be Empty");
+		}else if(newUser.getUserPassword() == null) {
+			throw new CustomException("UserPassword Cannot be Empty");
+		}else if(newUser.getShippingAddress() == null) {
+			
 		}
 
 			
@@ -85,7 +95,7 @@ public class UserServiceImpl implements UserService{
 		return ResponseEntity.ok(response);
 	}
 
-	public ResponseEntity<ApiResponse<User>> updateUserById(Long userId, User newUser) {
+	public ResponseEntity<ApiResponse<User>> updateUserById(Long userId, UpdateUser newUser) {
 		
 		Optional<User> u = userRepo.findById(userId);
 		User currUser = currentUser.getUser();
@@ -100,22 +110,18 @@ public class UserServiceImpl implements UserService{
 		}
 		
 		if(newUser.getUserName() == null) {
-			throw new UserNotFoundException("UserName Cannot be Empty");
+			throw new CustomException("UserName Cannot be Empty");
 		}else if(newUser.getUserEmail() == null) {
-			throw new UserNotFoundException("UserEmail Cannot be Empty");
-		}else if(newUser.getUserPassword() == null) {
-			throw new UserNotFoundException("UserPassword Cannot be Empty");
+			throw new CustomException("UserEmail Cannot be Empty");
 		}else if(newUser.getShippingAddress() == null) {
-			throw new UserNotFoundException("Shipping Address Cannot be Empty");
+			throw new CustomException("Shipping Address Cannot be Empty");
 		}else if(newUser.getPaymentDetails() == null) {
-			throw new UserNotFoundException("Payment Details Cannot be Empty");
+			throw new CustomException("Payment Details Cannot be Empty");
 		}
 		User oldUser = u.get();
 		
 		oldUser.setUserName(newUser.getUserName());
 		oldUser.setUserEmail(newUser.getUserEmail());
-		BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-		oldUser.setUserPassword(encoder.encode(newUser.getUserPassword()));
 		
 		if (newUser.getShippingAddress() != null) {
 		    for (Address address : newUser.getShippingAddress()) {

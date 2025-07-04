@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 
 import com.example.model.CartItem;
 import com.example.model.OrderProduct;
+import com.example.model.Product;
 
 import jakarta.transaction.Transactional;
 
@@ -39,6 +40,6 @@ public interface CartItemRepo extends JpaRepository<CartItem, Long>{
 	@Query("DELETE FROM CartItem op WHERE op.user.userId = :userId")
 	void deleteAllByUser(@Param("userId") Long userId);
 
-	List<CartItem> findByProductId(Long productId);
+	List<CartItem> findAllByProduct(Product product);
 
 }

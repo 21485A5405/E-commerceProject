@@ -45,7 +45,7 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role userRole;
 	
-	@OneToMany(mappedBy = "user")
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<CartItem> cartItems;
 	
 	@ElementCollection(targetClass = AdminPermissions.class, fetch = FetchType.EAGER)

@@ -47,12 +47,11 @@ public class OrderServiceImpl implements OrderService{
 	@Transactional
 	public ResponseEntity<ApiResponse<OrderProduct>> placeOrder(PlaceOrder orderDetails) {
 		
-
 	    Optional<User> findUser = userRepo.findById(orderDetails.getUserId());
 	    Optional<Product> findProduct = productRepo.findById(orderDetails.getProductId());
 	    Optional<CartItem> cart = cartItemRepo.findByUserAndProduct(orderDetails.getUserId(), orderDetails.getProductId());
 	    Optional<Address> addressExists = addressRepo.findById(orderDetails.getAddressId());
-	    List<CartItem> productList = cartItemRepo.findByProductId(orderDetails.getProductId());
+	    List<CartItem> productList = cartItemRepo.findAllByProduct(findProduct.get());
 	    User currUser = currentUser.getUser();
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");

@@ -1,6 +1,4 @@
 package com.example.controller;
-
-import java.rmi.registry.Registry;
 import java.util.Set;
 
 import org.springframework.http.ResponseEntity;
@@ -15,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.DTO.LoginDetails;
 import com.example.DTO.RegisterUser;
+import com.example.DTO.UpdateUser;
 import com.example.model.AdminPermissions;
 import com.example.model.User;
 import com.example.service.UserService;
@@ -45,7 +44,7 @@ public class UserController {
 	}
 	
 	@PutMapping("/update-user/{userId}")
-	public ResponseEntity<ApiResponse<User>> updateUser(@PathVariable Long userId, @RequestBody User user) {
+	public ResponseEntity<ApiResponse<User>> updateUser(@PathVariable Long userId, @RequestBody UpdateUser user) {
 		return userService.updateUserById(userId, user);
 	}
 	
