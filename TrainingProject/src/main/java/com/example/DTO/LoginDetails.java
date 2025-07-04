@@ -1,4 +1,4 @@
-package com.example.model;
+package com.example.DTO;
 
 public class LoginDetails {
 	

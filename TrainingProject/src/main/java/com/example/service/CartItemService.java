@@ -20,8 +20,6 @@ public interface CartItemService {
 	
 	public ResponseEntity<ApiResponse<List<CartItem>>> getItemsByUserId(Long userId);
 
-	public ResponseEntity<ApiResponse<CartItem>> updateQuantity(Long userId, Long productId, int newQuantity);
-
 	@Transactional
 	@Modifying
 	public ResponseEntity<ApiResponse<List<CartItem>>> deleteAllbyUserId(Long userId);

@@ -79,6 +79,7 @@ public class ProductServiceImpl implements ProductService{
 	return ResponseEntity.ok(response);
 	}
 
+	@Transactional
 	public ResponseEntity<ApiResponse<Product>> productUpdate(Long productId, Product newProduct, Long userId) {
 		
 		Optional<Product> exists= productRepo.findById(productId);

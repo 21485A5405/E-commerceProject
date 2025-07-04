@@ -1,5 +1,6 @@
 package com.example.controller;
 
+import java.rmi.registry.Registry;
 import java.util.Set;
 
 import org.springframework.http.ResponseEntity;
@@ -12,8 +13,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.DTO.LoginDetails;
+import com.example.DTO.RegisterUser;
 import com.example.model.AdminPermissions;
-import com.example.model.LoginDetails;
 import com.example.model.User;
 import com.example.service.UserService;
 
@@ -29,7 +31,7 @@ public class UserController {
 	}
 	
 	@PostMapping("/register-user")
-	public ResponseEntity<ApiResponse<User>> createUser(@RequestBody User user) {
+	public ResponseEntity<ApiResponse<User>> createUser(@RequestBody RegisterUser user) {
 		return userService.saveUser(user);
 	}
 	

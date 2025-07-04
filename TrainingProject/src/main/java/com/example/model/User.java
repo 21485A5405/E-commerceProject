@@ -43,7 +43,6 @@ public class User {
     private List<PaymentInfo> paymentDetails;
 
     @Enumerated(EnumType.STRING)
-    @JsonIgnore
     private Role userRole;
 	
 	@OneToMany(mappedBy = "user")
@@ -120,4 +119,16 @@ public class User {
 	public void setShippingAddress(List<Address> shippingAddress) {
 		this.shippingAddress = shippingAddress;
 	}
+	
+	public String displayPayments() {
+	    StringBuilder builder = new StringBuilder();
+	    if (paymentDetails != null) {
+	        for (PaymentInfo info : paymentDetails) {
+	            builder.append(info.getPaymentMethod()).append(" - ")
+	                   .append(info.getAccountDetails()).append(", ");   
+	        }
+	    }
+	    return builder.toString();
+	}
+
 }

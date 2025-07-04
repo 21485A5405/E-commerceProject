@@ -12,10 +12,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.DTO.PlaceOrder;
 import com.example.model.OrderProduct;
 import com.example.model.OrderStatus;
 import com.example.model.PaymentStatus;
-import com.example.model.PlaceOrder;
 import com.example.service.OrderService;
 
 @RestController

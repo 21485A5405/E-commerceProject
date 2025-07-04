@@ -1,4 +1,6 @@
-package com.example.model;
+package com.example.DTO;
+
+import com.example.model.PaymentMethod;
 
 public class PlaceOrder {
 	

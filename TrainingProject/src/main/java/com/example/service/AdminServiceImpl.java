@@ -9,21 +9,18 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.example.DTO.LoginDetails;
 import com.example.authentication.CurrentUser;
 import com.example.controller.ApiResponse;
 import com.example.exception.AdminNotFoundException;
 import com.example.exception.CustomException;
 import com.example.exception.UnAuthorizedException;
-import com.example.exception.UserNotFoundException;
 import com.example.model.Address;
 import com.example.model.AdminPermissions;
-import com.example.model.LoginDetails;
 import com.example.model.OrderProduct;
 import com.example.model.Product;
 import com.example.model.Role;
@@ -90,15 +87,15 @@ public class AdminServiceImpl implements AdminService{
 		}
 
 	public ResponseEntity<ApiResponse<User>> getAdminById(Long adminId) {
-		
-		Optional<User> exists = userRepo.findById(adminId);
-		if(!exists.isPresent()) {
-			throw new AdminNotFoundException("Admin Not Found");
-		}
+
 		
 		User currUser = currentUser.getUser();
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
+		}
+		Optional<User> exists = userRepo.findById(adminId);
+		if(!exists.isPresent()) {
+			throw new AdminNotFoundException("Admin Not Found");
 		}
 		if(exists.get().getUserRole()!=Role.ADMIN) {
 			throw new CustomException("User "+adminId +" is Not An Admin");
@@ -124,11 +121,6 @@ public class AdminServiceImpl implements AdminService{
 	@Transactional
 	public ResponseEntity<ApiResponse<User>> updateAdminById(Long adminId, User newAdmin) {
 		
-		Optional<User> adminExists = userRepo.findById(adminId);
-		if(!adminExists.isPresent()) {
-			throw new AdminNotFoundException("Admin Not Found");
-		}
-		
 		User currUser = currentUser.getUser();
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
@@ -138,6 +130,10 @@ public class AdminServiceImpl implements AdminService{
 		
 		if(!isAuthorized && !isManager) {
 			throw new UnAuthorizedException("You Dont Have Rights to Update This Admin");
+		}
+		Optional<User> adminExists = userRepo.findById(adminId);
+		if(!adminExists.isPresent()) {
+			throw new AdminNotFoundException("Admin Not Found");
 		}
 		BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 		if(isAuthorized) {
@@ -157,17 +153,17 @@ public class AdminServiceImpl implements AdminService{
 	
 	@Transactional
 	public ResponseEntity<ApiResponse<User>> deleteAdminById(Long adminId) {
-		
+
+		User currUser = currentUser.getUser();
+		if(currUser == null) {
+			throw new UnAuthorizedException("Please Login");
+		}
 		Optional<User> exists = userRepo.findById(adminId);
 		if(!exists.isPresent()) {
 			
 			throw new AdminNotFoundException("Admin Not Found");
 		}
 		
-		User currUser = currentUser.getUser();
-		if(currUser == null) {
-			throw new UnAuthorizedException("Please Login");
-		}
 		if(currUser.getUserRole() ==Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Manager)) {
 			throw new UnAuthorizedException("You Dont Have Rights To Delete Admin");
 		}
@@ -187,6 +183,7 @@ public class AdminServiceImpl implements AdminService{
 	}
 
 	public ResponseEntity<ApiResponse<List<User>>> getAllAdmins() {
+		
 		List<User> list = userRepo.findAll();
 		List<User> admins = new ArrayList<>();
 		User currUser = currentUser.getUser();
@@ -332,8 +329,11 @@ public class AdminServiceImpl implements AdminService{
 		if(adminExists.get().getUserRole()!=Role.ADMIN) {
 			throw new UnAuthorizedException("Please Provide Proper Admin Credentials");
 		}
-		
+		User currUser = currentUser.getUser();
 		User user = adminExists.get();
+		if(currUser.getUserId() == user.getUserId()) {
+			throw new CustomException("You Already In Current Session");
+		}
 		UserToken userToken = new UserToken();
 		
 		BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
@@ -349,7 +349,7 @@ public class AdminServiceImpl implements AdminService{
 	    
 		ApiResponse<User> response  = new ApiResponse<>();
 		response.setData(adminExists.get());
-		response.setMessage("Login Successful");
+		response.setMessage("Admin Login Successful");
 		return ResponseEntity.ok(response);
 	}
 }

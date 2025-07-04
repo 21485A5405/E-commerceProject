@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.model.LoginDetails;
+import com.example.DTO.LoginDetails;
 import com.example.model.OrderProduct;
 import com.example.model.Product;
 import com.example.model.User;

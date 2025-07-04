@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
+import com.example.DTO.PlaceOrder;
 import com.example.authentication.CurrentUser;
 import com.example.controller.ApiResponse;
 import com.example.exception.CustomException;
@@ -75,7 +75,9 @@ public class OrderServiceImpl implements OrderService{
 	    }
 	    CartItem cartItem = cart.get();
 	    if(cartItem.getProductQuantity()<orderDetails.getQuantity()) {
-	    	throw new CustomException("Only "+cartItem.getProductQuantity()+" Items Added Into Cart Please Add "+(orderDetails.getQuantity()-cartItem.getProductQuantity())+" items to Place an Order");
+	    	throw new CustomException("Only "+cartItem.getProductQuantity()
+					    	+" Items Added Into Cart Please Add "+(orderDetails.getQuantity()-cartItem.getProductQuantity())
+					    	+" items to Place an Order");
 	    }
 	    
 	    List<PaymentInfo> payment = findUser.get().getPaymentDetails();
@@ -84,15 +86,16 @@ public class OrderServiceImpl implements OrderService{
 	        throw new CustomException("Payment Method Can Not be Empty");
 	    }
 	    boolean isValid = false;
+	    
 	    for (PaymentInfo info : payment) {
 	        if (info.getPaymentMethod() != orderDetails.getPaymentType()) {
 	        	isValid = true;
 	        }
-	        if(isValid) {
-	        	throw new UnAuthorizedException("Payment Method Not Available In Your Account, "
-	        			+ "Available Payments in Your Account "+payment);
-	        }
 	    }
+        if(isValid) {
+        	throw new UnAuthorizedException("Selected Payment Method Not Available In Your Account, "
+        			+ "Available Payments in Your Account "+findUser.get().displayPayments());
+        }
  	    OrderProduct order = new OrderProduct();
  	    OrderItem orderItem = new OrderItem();
 	    if(cart.isPresent()) {	 
@@ -155,10 +158,6 @@ public class OrderServiceImpl implements OrderService{
 	@Transactional
 	public ResponseEntity<ApiResponse<OrderProduct>> cancelOrder(Long userId, Long productId, int quantity) {
 
-	    Optional<OrderProduct> orderExists = orderRepo.findByUserAndProductAndQuantity(userId, productId, quantity);
-	    if (!orderExists.isPresent()) {
-	        throw new ProductNotFoundException("No matching order found for user " + userId + " with product " + productId + " and quantity " + quantity);
-	    }
 	    User currUser = currentUser.getUser();
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
@@ -167,6 +166,10 @@ public class OrderServiceImpl implements OrderService{
 			throw new UnAuthorizedException("Not Authorized to Cancel Order With Another Account");
 		}
 		
+	    Optional<OrderProduct> orderExists = orderRepo.findByUserAndProductAndQuantity(userId, productId, quantity);
+	    if (!orderExists.isPresent()) {
+	        throw new ProductNotFoundException("No matching order found for user " + userId + " with product " + productId + " and quantity " + quantity);
+	    }
 	    OrderProduct order = orderExists.get();
 
 	    OrderItem matchingItem = null;

@@ -3,8 +3,8 @@ package com.example.service;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 
+import com.example.DTO.LoginDetails;
 import com.example.controller.ApiResponse;
-import com.example.model.LoginDetails;
 import com.example.model.OrderProduct;
 import com.example.model.Product;
 import com.example.model.User;

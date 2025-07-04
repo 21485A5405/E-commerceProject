@@ -4,11 +4,11 @@ import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 
+import com.example.DTO.PlaceOrder;
 import com.example.controller.ApiResponse;
 import com.example.model.OrderProduct;
 import com.example.model.OrderStatus;
 import com.example.model.PaymentStatus;
-import com.example.model.PlaceOrder;
 
 public interface OrderService {
 	
