@@ -3,7 +3,6 @@ package com.example.service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -14,11 +13,13 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.example.DTO.LoginDetails;
+import com.example.DTO.UpdateUser;
 import com.example.authentication.CurrentUser;
 import com.example.controller.ApiResponse;
 import com.example.exception.AdminNotFoundException;
 import com.example.exception.CustomException;
 import com.example.exception.UnAuthorizedException;
+import com.example.exception.UserNotFoundException;
 import com.example.model.Address;
 import com.example.model.AdminPermissions;
 import com.example.model.OrderProduct;
@@ -64,17 +65,13 @@ public class AdminServiceImpl implements AdminService{
 			} else {
 			    newAdmin.setShippingAddress(new ArrayList<>());
 			}
-
-			Set<AdminPermissions> permissions = new HashSet<>();
-			if (permissions != null) {
-			    for (AdminPermissions permission : newAdmin.getUserPermissions()) {
-			        permissions.add(permission);
-			    }
-			}
-			if(permissions.size() == 0){
+			
+			Set<AdminPermissions> permissions = newAdmin.getUserPermissions();
+			if (permissions == null || permissions.isEmpty()) {
 			    throw new CustomException("Invalid Permissions");
 			}
-			
+			newAdmin.setUserName(newAdmin.getUserName());
+			newAdmin.setUserEmail(newAdmin.getUserEmail());
 			BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 			String hashedPassword = encoder.encode(newAdmin.getUserPassword());
 			newAdmin.setUserPassword(hashedPassword);
@@ -100,54 +97,63 @@ public class AdminServiceImpl implements AdminService{
 		if(exists.get().getUserRole()!=Role.ADMIN) {
 			throw new CustomException("User "+adminId +" is Not An Admin");
 		}
-		if(currUser.getUserRole() ==Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Manager)) {
-			throw new UnAuthorizedException("You Dont Have Rights To See Admin");
-		}
-		if(currUser.getUserId() != adminId && !currUser.getUserPermissions().contains(AdminPermissions.Manager)) {
-			throw new UnAuthorizedException("Not Authorized to See Another Admin Details");
-		}
-		else if(currUser.getUserRole()!=Role.ADMIN) {
-			throw new AdminNotFoundException("User Not Allowed To See Admin Details");
-		}else {
+		
+		boolean isManager = currUser.getUserPermissions().contains(AdminPermissions.Manager);
+
+	    if (!currUser.getUserId().equals(adminId) && !isManager) {
+	        throw new UnAuthorizedException("Not Authorized to See Another Admin's Details");
+	    }
 			User admin = exists.get();
 			ApiResponse<User> adminFound = new ApiResponse<>();
 			adminFound.setData(admin);
 			adminFound.setMessage("Admin Details");
 			return ResponseEntity.ok(adminFound);
-		}
-
 	}
 
 	@Transactional
-	public ResponseEntity<ApiResponse<User>> updateAdminById(Long adminId, User newAdmin) {
+	public ResponseEntity<ApiResponse<User>> updateAdminById(Long adminId, UpdateUser newAdmin) {
 		
+		Optional<User> u = userRepo.findById(adminId);
 		User currUser = currentUser.getUser();
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
 		}
-		boolean isAuthorized = currUser.getUserId().equals(adminId);
-		boolean isManager = currUser.getUserPermissions().contains(AdminPermissions.Manager);
+		if(!u.isPresent()) {
+			throw new UserNotFoundException("Admin Not Found");
+		}
+		if(currUser.getUserId() != adminId) {
+			throw new UnAuthorizedException("You Are Not Allowed To Update Another Admin Details");
+		}
 		
-		if(!isAuthorized && !isManager) {
-			throw new UnAuthorizedException("You Dont Have Rights to Update This Admin");
+		if(newAdmin.getUserName() == null) {
+			throw new CustomException("UserName Cannot be Empty");
+		}else if(newAdmin.getUserEmail() == null) {
+			throw new CustomException("UserEmail Cannot be Empty");
+		}else if(newAdmin.getShippingAddress() == null) {
+			throw new CustomException("Shipping Address Cannot be Empty");
+		}else if(newAdmin.getPaymentDetails() == null) {
+			throw new CustomException("Payment Details Cannot be Empty");
 		}
-		Optional<User> adminExists = userRepo.findById(adminId);
-		if(!adminExists.isPresent()) {
-			throw new AdminNotFoundException("Admin Not Found");
+		User admin = u.get();
+		
+		admin.setUserName(newAdmin.getUserName());
+		admin.setUserEmail(newAdmin.getUserEmail());
+		
+		if (newAdmin.getShippingAddress() != null) {
+		    for (Address address : newAdmin.getShippingAddress()) {
+		        address.setUser(admin);
+		    }
+		    admin.setShippingAddress(newAdmin.getShippingAddress());
+		} else {
+		    admin.setShippingAddress(new ArrayList<>());
 		}
-		BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-		if(isAuthorized) {
-			adminExists.get().setUserName(newAdmin.getUserName());
-			adminExists.get().setUserEmail(newAdmin.getUserEmail());
-			adminExists.get().setUserPassword(encoder.encode(newAdmin.getUserPassword()));
-		}
-		if(!isAuthorized && isManager) {
-			adminExists.get().setUserRole(newAdmin.getUserRole());
-			adminExists.get().setUserPermissions(newAdmin.getUserPermissions());
-		}
-		userRepo.save(adminExists.get());
+
+		admin.setPaymentDetails(newAdmin.getPaymentDetails());
+		
+		userRepo.save(admin);
 		ApiResponse<User> response = new ApiResponse<>();
-		response.setMessage("Admin Updated Successfully");
+		response.setData(admin);
+		response.setMessage("User Updated Successfully");
 		return ResponseEntity.ok(response);
 	}
 	
@@ -163,16 +169,12 @@ public class AdminServiceImpl implements AdminService{
 			
 			throw new AdminNotFoundException("Admin Not Found");
 		}
-		
-		if(currUser.getUserRole() ==Role.ADMIN && !currUser.getUserPermissions().contains(AdminPermissions.Manager)) {
-			throw new UnAuthorizedException("You Dont Have Rights To Delete Admin");
-		}
-		if(currUser.getUserId() != adminId && !currUser.getUserPermissions().contains(AdminPermissions.Manager)) {
-			throw new UnAuthorizedException("Not Authorized to Delete Another Admin Details");
-		}
-		else if(exists.get().getUserRole()!=Role.ADMIN) {
+		if(exists.get().getUserRole()!=Role.ADMIN) {
 			throw new AdminNotFoundException("User Not Allowed To Delete Admin Details");
 		}
+	    if (!currUser.getUserId().equals(adminId)) {
+	        throw new UnAuthorizedException("Not Authorized to Delete Another Admin's Details");
+	    }
 		else {
 			
 			userTokenRepo.deleteAllByUserId(adminId);
@@ -216,17 +218,15 @@ public class AdminServiceImpl implements AdminService{
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
 		}
-		if(currUser.getUserRole() != Role.ADMIN) {
-			throw new UnAuthorizedException("User are Not Allowed to See Admin Details");
+		if(currUser.getUserRole()!=Role.ADMIN) {
+			throw new UnAuthorizedException("User are Not Allowed to See All Orders Details");
 		}
+		
 		if (currUser.getUserRole() == Role.ADMIN &&
 			    !(currUser.getUserPermissions().contains(AdminPermissions.Order_Manager) ||
 			      currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
 			    throw new UnAuthorizedException("You don't have rights to update user roles");
 			}
-		if(currUser.getUserRole()!=Role.ADMIN) {
-			throw new UnAuthorizedException("User are Not Allowed to See All Orders Details");
-		}
 		
 		ApiResponse<List<OrderProduct>> response = new ApiResponse<>();
 		response.setData(orderList);
@@ -285,8 +285,12 @@ public class AdminServiceImpl implements AdminService{
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
 		}
+		if(currUser.getUserRole()!=Role.ADMIN) {
+			throw new UnAuthorizedException("User Dont Have Authorization To See All Users");
+		}
+		
 		if (currUser.getUserRole() == Role.ADMIN &&
-			    !(currUser.getUserPermissions().contains(AdminPermissions.Product_Manager) ||
+			    !(currUser.getUserPermissions().contains(AdminPermissions.User_Manager) ||
 					      currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
 					    throw new UnAuthorizedException("You don't have rights to See user Details");
 					}
@@ -308,11 +312,6 @@ public class AdminServiceImpl implements AdminService{
 		User currUser = currentUser.getUser();
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
-		}
-		if(currUser.getUserRole() == Role.ADMIN &&
-			    !(currUser.getUserPermissions().contains(AdminPermissions.Product_Manager) ||
-					      currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
-			throw new UnAuthorizedException("Only Manager and Product Manager Have Rights To See All Products Details");
 		}
 		ApiResponse<List<Product>> response = new ApiResponse<>();
 		response.setData(products);

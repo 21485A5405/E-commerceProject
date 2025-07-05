@@ -70,17 +70,17 @@ public class UserServiceImpl implements UserService{
 		}else {
 			throw new UnAuthorizedException("Payment Cannot be Null");
 		}
-		if(newUser.getUserName() == null) {
+		if(user.getUserName() == null) {
 			throw new CustomException("UserName Cannot be Empty");
-		}else if(newUser.getUserEmail() == null) {
+		}else if(user.getUserEmail() == null) {
 			throw new CustomException("UserEmail Cannot be Empty");
-		}else if(newUser.getUserPassword() == null) {
+		}else if(user.getUserPassword() == null) {
 			throw new CustomException("UserPassword Cannot be Empty");
-		}else if(newUser.getShippingAddress() == null) {
+		}else if(user.getShippingAddress() == null) {
+			throw new CustomException("ShippingAddress Cannot be Empty");
 			
 		}
 
-			
 			BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 			String hashedPassword = encoder.encode(user.getUserPassword());
 			newUser.setUserEmail(user.getUserEmail());
@@ -152,17 +152,16 @@ public class UserServiceImpl implements UserService{
 			
 			throw new UserNotFoundException("User Not Found");
 		}
-		
-		if(exists.get().getUserRole() == Role.ADMIN) {
-			throw new UnAuthorizedException("User "+userId+ " is Not User");
-		}
 		if (currUser.getUserRole() == Role.ADMIN &&
 			    !(currUser.getUserPermissions().contains(AdminPermissions.User_Manager) ||
 					      currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
-					    throw new UnAuthorizedException("You don't have Rights to See user Details");
+					    throw new UnAuthorizedException("Only Manager and User_Manager have Right To User Details");
 			}
-		if(currUser.getUserId()!= userId) {
+		if(currUser.getUserId()!= userId && currUser.getUserRole() != Role.ADMIN) {
 			throw new UnAuthorizedException("Not Allowed to Get Another User Details");
+		}
+		if(exists.get().getUserRole() == Role.ADMIN) {
+			throw new UnAuthorizedException("User "+userId+ " is Not User");
 		}
 		
 		User user = exists.get();

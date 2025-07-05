@@ -30,7 +30,7 @@ public class OrderController {
 
 	@PostMapping("/place-order")
 	public ResponseEntity<ApiResponse<OrderProduct>> placeOrder(@RequestBody PlaceOrder orderDetails) {
-		return orderService.placeOrder(orderDetails);
+		return orderService.placeOrder(orderDetails);	
 	}
 	
 	@GetMapping("/get-by-user/{userId}")

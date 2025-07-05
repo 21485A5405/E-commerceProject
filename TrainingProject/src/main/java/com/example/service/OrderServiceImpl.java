@@ -88,11 +88,11 @@ public class OrderServiceImpl implements OrderService{
 	    boolean isValid = false;
 	    
 	    for (PaymentInfo info : payment) {
-	        if (info.getPaymentMethod() != orderDetails.getPaymentType()) {
+	        if (info.getPaymentMethod() == orderDetails.getPaymentType()) {
 	        	isValid = true;
 	        }
 	    }
-        if(isValid) {
+        if(!isValid) {
         	throw new UnAuthorizedException("Selected Payment Method Not Available In Your Account, "
         			+ "Available Payments in Your Account "+findUser.get().displayPayments());
         }
@@ -110,12 +110,20 @@ public class OrderServiceImpl implements OrderService{
 	 	    order.setTotalPrice(orderDetails.getQuantity()*product.getProductPrice());
 	 	    cartItem.setProductQuantity(cartItem.getProductQuantity()-orderDetails.getQuantity());
 	 	    cartItem.setTotalPrice(cartItem.getProductQuantity()*product.getProductPrice());
-	 	    for(CartItem carts :productList) {
-	 	    	carts.setProductQuantity(carts.getProductQuantity()-orderDetails.getQuantity());
-	 	    }
-	 	    if(cartItem.getProductQuantity() <= 0) {
-	 	    	cartItemRepo.delete(cartItem);
-	 	    }
+	 	    product.setProductQuantity(product.getProductQuantity()-orderDetails.getQuantity());
+	 	   for (CartItem item : productList) {
+	 		    if (!item.getUser().getUserId().equals(orderDetails.getUserId())) {
+	 		        int updatedQty = item.getProductQuantity() - orderDetails.getQuantity();
+	 		        if (updatedQty <= 0) {
+	 		            cartItemRepo.delete(item);
+	 		        } else {
+	 		            item.setProductQuantity(updatedQty);
+	 		            item.setTotalPrice(updatedQty * product.getProductPrice());
+	 		            cartItemRepo.save(item);
+	 		        }
+	 		    }
+	 		}
+
 	 	    orderItem.setOrder(order);
 	 	    orderItem.setProduct(product);
 	 	    orderItem.setQuantity(orderDetails.getQuantity());
@@ -123,7 +131,6 @@ public class OrderServiceImpl implements OrderService{
 	 	    ArrayList<OrderItem> items = new ArrayList<>();
 	 	    items.add(orderItem);
 	 	    order.setItems(items);
-	 	    cartItemRepo.save(cartItem);
 	 	    orderRepo.save(order); 
 	 	    
 	    }
@@ -142,14 +149,21 @@ public class OrderServiceImpl implements OrderService{
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
 		}
-		if(currUser.getUserId()!= userId) {
+		if(currUser.getUserId()!= userId ) {
 			throw new UnAuthorizedException("Not Authorized to See Another Users Order Details");
 		}
-		if (currUser.getUserRole() == Role.ADMIN &&
-			    !(currUser.getUserPermissions().contains(AdminPermissions.Order_Manager) ||
-			      currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
-			    throw new UnAuthorizedException("You don't have rights to update user roles");
-			}
+
+		boolean isSelf = currUser.getUserId().equals(userId);
+		boolean isManager = currUser.getUserPermissions().contains(AdminPermissions.Manager);
+		boolean isOrderManager = currUser.getUserPermissions().contains(AdminPermissions.Order_Manager);
+		
+		if (!isSelf && !(isManager || isOrderManager)) {
+		    throw new UnAuthorizedException("Not Authorized to View This User's Order Details");
+		}
+		
+		if (currUser.getUserRole() == Role.ADMIN && !(isManager || isOrderManager)) {
+		    throw new UnAuthorizedException("You don't have rights to view order details");
+		}
 		if(orders.isEmpty()) {
 			throw new UserNotFoundException("No Order Details Found with Given User ID");
 		}
@@ -172,29 +186,30 @@ public class OrderServiceImpl implements OrderService{
 		
 	    Optional<OrderProduct> orderExists = orderRepo.findByUserAndProductAndQuantity(userId, productId, quantity);
 	    if (!orderExists.isPresent()) {
-	        throw new ProductNotFoundException("No matching order found for user " + userId + " with product " + productId + " and quantity " + quantity);
+	        throw new ProductNotFoundException("No matching order found for user " + userId + " with product " 
+	        								+ productId + " and quantity " + quantity);
 	    }
 	    OrderProduct order = orderExists.get();
 
-	    OrderItem matchingItem = null;
+	    OrderItem items = null;
 	    for (OrderItem item : order.getItems()) {
 	        if (item.getProduct().getProductId().equals(productId) && item.getQuantity() == quantity) {
-	            matchingItem = item;
+	            items = item;
 	            break;
 	        }
 	    }
 
-	    if (matchingItem == null) {
+	    if (items == null) {
 	        throw new ProductNotFoundException("No matching item found in order for product " + productId);
 	    }
 	    
 	    Optional<Product> productExists = productRepo.findById(productId);
-	    if (!productExists.isPresent()) {
-	        throw new ProductNotFoundException("Product " + productId + " not found");
-	    }
+//	    if (!productExists.isPresent()) {
+//	        throw new ProductNotFoundException("Product " + productId + " not found");
+//	    }
 
 	    Product product = productExists.get();
-	    product.setProductQuantity(product.getProductQuantity() + matchingItem.getQuantity());
+	    product.setProductQuantity(product.getProductQuantity() + items.getQuantity());
 	    productRepo.save(product);
 	    orderRepo.delete(order);
 
@@ -206,24 +221,26 @@ public class OrderServiceImpl implements OrderService{
 
 	public ResponseEntity<ApiResponse<List<OrderProduct>>> getByUserIdAndProductId(Long userId, Long productId) {
 		
+		User currUser = currentUser.getUser();
+		if(currUser == null) {
+			throw new UnAuthorizedException("Please Login");
+		}
+		boolean isSelf = currUser.getUserId().equals(userId);
+		boolean isManager = currUser.getUserPermissions().contains(AdminPermissions.Manager);
+		boolean isOrderManager = currUser.getUserPermissions().contains(AdminPermissions.Order_Manager);
+		
+		if (!isSelf && !(isManager || isOrderManager)) {
+		    throw new UnAuthorizedException("Not Authorized to View This User's Order Details");
+		}
+		
+		if (currUser.getUserRole() == Role.ADMIN && !(isManager || isOrderManager)) {
+		    throw new UnAuthorizedException("Only Manager and Order Manager have rights to view order details");
+		}
 		List<OrderProduct> orders = orderRepo.findAllByUserAndProduct(userId, productId);
 		
 		if(orders.isEmpty()) {
 			throw new ProductNotFoundException("Orders Not Found With This UserID "+userId+" and ProductID "+productId);
 		}
-		
-		User currUser = currentUser.getUser();
-		if(currUser == null) {
-			throw new UnAuthorizedException("Please Login");
-		}
-		if(currUser.getUserId()!= userId) {
-			throw new UnAuthorizedException("Not Authorized to See Another User Order Details");
-		}
-		if (currUser.getUserRole() == Role.ADMIN &&
-			    !(currUser.getUserPermissions().contains(AdminPermissions.Order_Manager) ||
-			      currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
-			    throw new UnAuthorizedException("You don't have rights to update user roles");
-			}
 		ApiResponse<List<OrderProduct>> response = new ApiResponse<>();
 		response.setData(orders);
 		response.setMessage("Orders Details");
@@ -231,23 +248,27 @@ public class OrderServiceImpl implements OrderService{
 	}
 	
 	public ResponseEntity<ApiResponse<List<OrderProduct>>> getAllOrders() {
+		
+		User currUser = currentUser.getUser();
+		if(currUser == null) {
+			throw new UnAuthorizedException("Please Login");
+		}
+		boolean isManager = currUser.getUserPermissions().contains(AdminPermissions.Manager);
+		boolean isOrderManager = currUser.getUserPermissions().contains(AdminPermissions.Order_Manager);
+		
+		if (currUser.getUserRole() != Role.ADMIN) {
+		    throw new UnAuthorizedException("User Not Authorized to View This All Order Details");
+		}
+		
+		if (currUser.getUserRole() == Role.ADMIN && !(isManager || isOrderManager)) {
+		    throw new UnAuthorizedException("Only Manager and Order Manager have rights to view All order details");
+		}
 		List<OrderProduct> orderList = orderRepo.findAll();
 		
 		if(orderList.isEmpty()) {
 			throw new CustomException("No Order Found");
 		}
-		User currUser = currentUser.getUser();
-		if(currUser == null) {
-			throw new UnAuthorizedException("Please Login");
-		}
-		if(currUser.getUserRole()!= Role.ADMIN) {
-			throw new UnAuthorizedException("User Not Authorized to See All Orders");
-		}
-		if (currUser.getUserRole() == Role.ADMIN &&
-			    !(currUser.getUserPermissions().contains(AdminPermissions.Order_Manager) ||
-			      currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
-			    throw new UnAuthorizedException("You don't Have Rights to See All Order Details");
-			}
+		
 		ApiResponse<List<OrderProduct>> response = new ApiResponse<>();
 		response.setData(orderList);
 		response.setMessage("All Orders Details");
@@ -255,12 +276,6 @@ public class OrderServiceImpl implements OrderService{
 	}
 
 	public ResponseEntity<ApiResponse<List<OrderProduct>>> getOrderStatus(OrderStatus status) {
-		
-		List<OrderProduct> orders = orderRepo.findAllByOrderStatus(status);
-		if(orders.isEmpty()) {
-			throw new CustomException("No Order Found with Order Status "+status);
-		}
-		
 		User currUser = currentUser.getUser();
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
@@ -268,12 +283,19 @@ public class OrderServiceImpl implements OrderService{
 		if(currUser.getUserRole()!= Role.ADMIN) {
 			throw new UnAuthorizedException("User Not Allowed to See Order Statuses");
 		}
-		if (currUser.getUserRole() == Role.ADMIN &&
-			    !(currUser.getUserPermissions().contains(AdminPermissions.Order_Manager) ||
-			      currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
-			    throw new UnAuthorizedException("You don't have rights to update user roles");
-			}
 
+		boolean isManager = currUser.getUserPermissions().contains(AdminPermissions.Manager);
+		boolean isOrderManager = currUser.getUserPermissions().contains(AdminPermissions.Order_Manager);
+
+		if (currUser.getUserRole() == Role.ADMIN && !(isManager || isOrderManager)) {
+		    throw new UnAuthorizedException("Only Manager and Order Manager have rights to view order Statuses");
+		}
+		List<OrderProduct> orders = orderRepo.findAllByOrderStatus(status);
+		if(orders.isEmpty()) {
+			throw new CustomException("No Order Found with Order Status "+status);
+		}
+		
+		
 		ApiResponse<List<OrderProduct>> response = new ApiResponse<>();
 		response.setData(orders);
 		response.setMessage("Order Details with Order Status "+status);
@@ -282,8 +304,6 @@ public class OrderServiceImpl implements OrderService{
 	
 	public ResponseEntity<ApiResponse<List<OrderProduct>>> getOrderByPayment(PaymentStatus paymentStatus) {
 		
-		List<OrderProduct> orders = orderRepo.findAllByPaymentStatus(paymentStatus);
-		
 		User currUser = currentUser.getUser();
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
@@ -291,14 +311,16 @@ public class OrderServiceImpl implements OrderService{
  		if(currUser.getUserRole()!= Role.ADMIN) {
 			throw new UnAuthorizedException("User Not Allowed to See Payment Statuses");
 		}
+ 		boolean isManager = currUser.getUserPermissions().contains(AdminPermissions.Manager);
+		boolean isOrderManager = currUser.getUserPermissions().contains(AdminPermissions.Order_Manager);
+
+		if (currUser.getUserRole() == Role.ADMIN && !(isManager || isOrderManager)) {
+		    throw new UnAuthorizedException("You don't have rights to update user roles");
+		}
+		List<OrderProduct> orders = orderRepo.findAllByPaymentStatus(paymentStatus);
 		if(orders.isEmpty()) {
 			throw new CustomException("No Orders Found With Payment Status "+paymentStatus);
 		}
-		if (currUser.getUserRole() == Role.ADMIN &&
-			    !(currUser.getUserPermissions().contains(AdminPermissions.Order_Manager) ||
-			      currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
-			    throw new UnAuthorizedException("You don't have rights to update user roles");
-			}
 		ApiResponse<List<OrderProduct>> response = new ApiResponse<>();
 		response.setData(orders);
 		response.setMessage("Order Details with Payment Status "+paymentStatus);

@@ -40,6 +40,7 @@ public class User {
 
     @ElementCollection
     @CollectionTable(name = "paymentDetails", joinColumns = @JoinColumn(name = "userId"))
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private List<PaymentInfo> paymentDetails;
 
     @Enumerated(EnumType.STRING)

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.DTO.LoginDetails;
+import com.example.DTO.UpdateUser;
 import com.example.model.OrderProduct;
 import com.example.model.Product;
 import com.example.model.User;
@@ -29,10 +30,10 @@ public class AdminController {
 		this.adminService = adminService;
 	}
 	
-//	@PostMapping("/register-admin")
-//	public ResponseEntity<ApiResponse<User>> adminData(@RequestBody User admin) {
-//		return adminService.createAdmin(admin);
-//	}
+	@PostMapping("/register-admin")
+	public ResponseEntity<ApiResponse<User>> adminData(@RequestBody User admin) {
+		return adminService.createAdmin(admin);
+	}
 	
 	@GetMapping("/get-admin-by-id/{adminId}")
 	public ResponseEntity<ApiResponse<User>> getAdmin(@PathVariable Long adminId) {
@@ -65,7 +66,7 @@ public class AdminController {
 	}
 	
 	@PutMapping("/update-admin/{adminId}")
-	public ResponseEntity<ApiResponse<User>> updateAdmin(@PathVariable Long adminId, @RequestBody User newAdmin) {
+	public ResponseEntity<ApiResponse<User>> updateAdmin(@PathVariable Long adminId, @RequestBody UpdateUser newAdmin) {
 		return adminService.updateAdminById(adminId, newAdmin);
 	}
 

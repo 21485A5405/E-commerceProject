@@ -24,5 +24,8 @@ public interface CartItemService {
 	@Modifying
 	public ResponseEntity<ApiResponse<List<CartItem>>> deleteAllbyUserId(Long userId);
 
+	
+	public ResponseEntity<ApiResponse<CartItem>> updateCart(Long userId, Long productId, int newQuantity);
+
 
 }

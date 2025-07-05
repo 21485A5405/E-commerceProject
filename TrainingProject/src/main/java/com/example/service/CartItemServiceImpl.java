@@ -29,7 +29,8 @@ public class CartItemServiceImpl implements CartItemService{
 	private UserRepo userRepo;
 	private CurrentUser currentUser;
 	
-	public CartItemServiceImpl(CartItemRepo cartItemRepo, CurrentUser currentUser, ProductRepo productRepo, UserRepo userRepo) {
+	public CartItemServiceImpl(CartItemRepo cartItemRepo, CurrentUser currentUser, 
+									ProductRepo productRepo, UserRepo userRepo) {
 		this.cartItemRepo = cartItemRepo;
 		this.productRepo = productRepo;
 		this.userRepo = userRepo;
@@ -39,45 +40,53 @@ public class CartItemServiceImpl implements CartItemService{
 	
 	public ResponseEntity<ApiResponse<CartItem>> addProductToCart(Long userId,Long productId, int quantity) {
 
+		Optional<CartItem> exists = cartItemRepo.findByUserAndProduct(userId, productId);
+		Optional<Product> p = productRepo.findById(productId);
+		Optional<User> u = userRepo.findById(userId);
+		
 		User currUser = currentUser.getUser();
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
+		}if(!u.isPresent()) {
+			throw new UserNotFoundException("User Not Found");
 		}
 		if(currUser.getUserId()!= userId) {
 			throw new UnAuthorizedException("User Not Authorized to Add Product Into Another Account");
 		}
-		
-		Optional<Product> p = productRepo.findById(productId);
-		Optional<User> u = userRepo.findById(userId);
-		
-		if(!u.isPresent()) {
-			throw new UserNotFoundException("User Not Found");
-		}else if(!p.isPresent()) {
+		if(!p.isPresent()) {
 			throw new ProductNotFoundException("Product Not Found to Add Into Cart");
+		}
+		Product product =p.get();
+		User user = u.get();	
+		if(product.getProductQuantity() == 0) {
+			throw new CustomException("Product Out Of Stock");
 		}
 		if(quantity <=0) {
 			throw new CustomException("Quantity Cannot be Less than Zero");
 		}
-		Product product =p.get();
 		
-		if(product.getProductQuantity() == 0) {
-			throw new CustomException("Out Of Stock");
-		}
-		if(product.getProductQuantity()<=quantity) {
+		if(product.getProductQuantity()<quantity) {
 			
-			throw new CustomException("Enough Quantity Selected , We have "+product.getProductQuantity()+" Items available. Please Selcct Under "+product.getProductQuantity()+" as Quantity");
+			throw new CustomException("Enough Quantity Selected , We have "
+					+product.getProductQuantity()+" Items available. Please Selcct Under "
+							+product.getProductQuantity()+" as Quantity");
 		}
-		CartItem cartItem = new CartItem();
-		User user = u.get();			
-		cartItem.setUser(user);
-		cartItem.setProduct(product);
-		cartItem.setProductQuantity(quantity);
-		cartItem.setTotalPrice(quantity*product.getProductPrice());
-		product.setProductQuantity(product.getProductQuantity()-quantity);
-		cartItemRepo.save(cartItem);
+		CartItem cartItem = null;
+		if(exists.isPresent()) { // only increase the existing quantity 
+			cartItem = exists.get();
+			cartItem.setProductQuantity(cartItem.getProductQuantity()+quantity);
+			
+		}else {
+			cartItem = new CartItem();
+			cartItem.setUser(user);
+			cartItem.setProduct(product);
+			cartItem.setProductQuantity(quantity);
+			cartItem.setTotalPrice(quantity*product.getProductPrice());
+			cartItemRepo.save(cartItem);
+		}
 		ApiResponse<CartItem> response = new ApiResponse<>();
 		response.setData(cartItem);
-		response.setMessage("New Items Added Into Cart Successfully");
+		response.setMessage("Item Added Into Cart Successfully");
 		return ResponseEntity.ok(response);
 	}
 
@@ -127,6 +136,10 @@ public class CartItemServiceImpl implements CartItemService{
 
 	public ResponseEntity<ApiResponse<List<CartItem>>> getItemsByUserId(Long userId) {
 
+		Optional<User> exists = userRepo.findById(userId);
+		if(!exists.isPresent()) {
+			throw new UserNotFoundException("User Not Found");
+		}
 		User currUser = currentUser.getUser();
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
@@ -136,7 +149,7 @@ public class CartItemServiceImpl implements CartItemService{
 		}
 		List<CartItem> cartItems = cartItemRepo.findByUserId(userId);
 		if(cartItems.isEmpty()) {
-			throw new UserNotFoundException("User Not Found");
+			throw new UserNotFoundException("User Cart Is empty");
 		}
 		
 		ApiResponse<List<CartItem>> response = new ApiResponse<>();
@@ -148,6 +161,10 @@ public class CartItemServiceImpl implements CartItemService{
 	@Transactional
 	public ResponseEntity<ApiResponse<List<CartItem>>> deleteAllbyUserId(Long userId) {
 		
+		Optional<User> exists = userRepo.findById(userId);
+		if(!exists.isPresent()) {
+			throw new UserNotFoundException("User Not Found");
+		}
 		User currUser = currentUser.getUser();
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
@@ -158,14 +175,58 @@ public class CartItemServiceImpl implements CartItemService{
 		List<CartItem> c= cartItemRepo.findByUserId(userId);
 		
 		if(c.isEmpty()) {
-			throw new UserNotFoundException("User Not Found");
+			throw new UserNotFoundException("User Cart Is empty");
 		}
 		
 		cartItemRepo.deleteAllByUser(userId);
 		ApiResponse<List<CartItem>> response = new ApiResponse<>();
 		response.setData(c);
-		response.setMessage("User "+userId+" Related Items Deleted From Cart Successfully");
+		response.setMessage("User "+userId+" Related Items Deleted From The Cart Successfully");
 		return ResponseEntity.ok(response);
 	}
 
+	@Transactional
+	public ResponseEntity<ApiResponse<CartItem>> updateCart(Long userId, Long productId, int newQuantity) {
+		
+		Optional<CartItem> exists = cartItemRepo.findByUserAndProduct(userId, productId);
+		Optional<Product> p = productRepo.findById(productId);
+		Optional<User> u = userRepo.findById(userId);
+		
+		User currUser = currentUser.getUser();
+		if(currUser == null) {
+			throw new UnAuthorizedException("Please Login");
+		}if(!u.isPresent()) {
+			throw new UserNotFoundException("User Not Found");
+		}
+		if(currUser.getUserId()!= userId) {
+			throw new UnAuthorizedException("User Not Authorized to Add Product Into Another Account");
+		}
+		if(!p.isPresent()) {
+			throw new ProductNotFoundException("Product Not Found to Add to Cart");
+		}
+		Product product =p.get();
+		if(product.getProductQuantity() == 0) {
+			throw new CustomException("Product Out Of Stock");
+		}
+		if(newQuantity <=0) {
+			throw new CustomException("Quantity Cannot be Less than Zero");
+		}
+		
+		if(product.getProductQuantity()<newQuantity) {
+			
+			throw new CustomException("Enough Quantity Selected , We have "
+					+product.getProductQuantity()+" Items available. Please Selcct Under "
+							+product.getProductQuantity()+" as Quantity");
+		}
+		CartItem cartItem = null;
+		if(exists.isPresent()) { // update Existing quantity 
+			cartItem = exists.get();
+			cartItem.setProductQuantity(newQuantity);
+			cartItem.setTotalPrice(newQuantity*product.getProductPrice());
+		}
+		ApiResponse<CartItem> response = new ApiResponse<>();
+		response.setData(cartItem);
+		response.setMessage("CartItems Updated Successfully");
+		return ResponseEntity.ok(response);
+	}
 }

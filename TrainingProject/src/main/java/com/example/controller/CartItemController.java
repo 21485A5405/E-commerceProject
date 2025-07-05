@@ -41,6 +41,11 @@ public class CartItemController {
 	public ResponseEntity<ApiResponse<List<CartItem>>> getItemsByUserId(@PathVariable Long userId) {
 		return cartItemService.getItemsByUserId(userId);
 	}
+	
+	@PutMapping("/update-cart/{userId}/{productId}/{newQuantity}")
+	public ResponseEntity<ApiResponse<CartItem>> updateCart(@PathVariable Long userId, @PathVariable Long productId, @PathVariable int newQuantity) {
+		return cartItemService.updateCart(userId, productId, newQuantity);
+	}
 
 	@DeleteMapping("/delete-all-by-userid/{userId}")
 	public ResponseEntity<ApiResponse<List<CartItem>>> deleteitems(@PathVariable Long userId) {
