@@ -46,99 +46,120 @@ public class OrderServiceImpl implements OrderService{
 
 	@Transactional
 	public ResponseEntity<ApiResponse<OrderProduct>> placeOrder(PlaceOrder orderDetails) {
-		
+
 	    Optional<User> findUser = userRepo.findById(orderDetails.getUserId());
 	    Optional<Product> findProduct = productRepo.findById(orderDetails.getProductId());
 	    Optional<CartItem> cart = cartItemRepo.findByUserAndProduct(orderDetails.getUserId(), orderDetails.getProductId());
 	    Optional<Address> addressExists = addressRepo.findById(orderDetails.getAddressId());
-	    List<CartItem> productList = cartItemRepo.findAllByProduct(findProduct.get());
-	    User currUser = currentUser.getUser();
-		if(currUser == null) {
-			throw new UnAuthorizedException("Please Login");
-		}
-		if(currUser.getUserId()!= orderDetails.getUserId()) {
-			throw new UnAuthorizedException("Not Authorized to Place Order with Another User ID");
-		}
 	    
+	    User currUser = currentUser.getUser();
+	    if (currUser == null) {
+	        throw new UnAuthorizedException("Please Login");
+	    }
+	    if (!currUser.getUserId().equals(orderDetails.getUserId())) {
+	        throw new UnAuthorizedException("Not Authorized to Place Order with Another User ID");
+	    }
 	    if (!findUser.isPresent()) {
 	        throw new UserNotFoundException("User Not Found");
 	    }
 	    if (!findProduct.isPresent()) {
 	        throw new ProductNotFoundException("Product Not Available");
 	    }
-	    
 	    if (!cart.isPresent()) {
 	        throw new ProductNotFoundException("Please Add Product into Cart to place Order");
 	    }
-	    if(!addressExists.isPresent()) {
-	    	throw new CustomException("No Address Found with Address ID" +orderDetails.getAddressId());
+	    if (!addressExists.isPresent()) {
+	        throw new CustomException("No Address Found with Address ID For That User" + orderDetails.getAddressId());
 	    }
-	    CartItem cartItem = cart.get();
-	    if(cartItem.getProductQuantity()<orderDetails.getQuantity()) {
-	    	throw new CustomException("Only "+cartItem.getProductQuantity()
-					    	+" Items Added Into Cart Please Add "+(orderDetails.getQuantity()-cartItem.getProductQuantity())
-					    	+" items to Place an Order");
-	    }
-	    
-	    List<PaymentInfo> payment = findUser.get().getPaymentDetails();
 
+	    CartItem cartItem = cart.get();
+	    if (cartItem.getProductQuantity() < orderDetails.getQuantity()) {
+	        throw new CustomException("Only " + cartItem.getProductQuantity() +
+				            " items in cart. Please add " + (orderDetails.getQuantity() 
+				            		- cartItem.getProductQuantity()) +" more to place this order.");
+	    }
+
+	    List<PaymentInfo> payment = findUser.get().getPaymentDetails();
 	    if (payment == null || payment.isEmpty()) {
-	        throw new CustomException("Payment Method Can Not be Empty");
+	        throw new CustomException("Payment Method Cannot be Empty");
 	    }
 	    boolean isValid = false;
-	    
 	    for (PaymentInfo info : payment) {
 	        if (info.getPaymentMethod() == orderDetails.getPaymentType()) {
-	        	isValid = true;
+	            isValid = true;
+	            break;
 	        }
 	    }
-        if(!isValid) {
-        	throw new UnAuthorizedException("Selected Payment Method Not Available In Your Account, "
-        			+ "Available Payments in Your Account "+findUser.get().displayPayments());
-        }
- 	    OrderProduct order = new OrderProduct();
- 	    OrderItem orderItem = new OrderItem();
-	    if(cart.isPresent()) {	 
-	 	    User user = findUser.get();
-	 	    Product product = findProduct.get();
-	 	    order.setUser(user);
-	 	    order.setOrderDate(LocalDateTime.now());
-	 	    Address address = addressExists.get();
-	 	    order.setShippingAddress(address.getFullAddress());
-	 	    order.setOrderStatus(OrderStatus.PROCESSING);
-	 	    order.setPaymentStatus(PaymentStatus.PAID);
-	 	    order.setTotalPrice(orderDetails.getQuantity()*product.getProductPrice());
-	 	    cartItem.setProductQuantity(cartItem.getProductQuantity()-orderDetails.getQuantity());
-	 	    cartItem.setTotalPrice(cartItem.getProductQuantity()*product.getProductPrice());
-	 	    product.setProductQuantity(product.getProductQuantity()-orderDetails.getQuantity());
-	 	   for (CartItem item : productList) {
-	 		    if (!item.getUser().getUserId().equals(orderDetails.getUserId())) {
-	 		        int updatedQty = item.getProductQuantity() - orderDetails.getQuantity();
-	 		        if (updatedQty <= 0) {
-	 		            cartItemRepo.delete(item);
-	 		        } else {
-	 		            item.setProductQuantity(updatedQty);
-	 		            item.setTotalPrice(updatedQty * product.getProductPrice());
-	 		            cartItemRepo.save(item);
-	 		        }
-	 		    }
-	 		}
-	 	    orderItem.setOrder(order);
-	 	    orderItem.setProduct(product);
-	 	    orderItem.setQuantity(orderDetails.getQuantity());
-	 	    
-	 	    ArrayList<OrderItem> items = new ArrayList<>();
-	 	    items.add(orderItem);
-	 	    order.setItems(items);
-	 	    orderRepo.save(order); 
-	 	    
+	    if (!isValid) {
+	        throw new UnAuthorizedException("Selected Payment Method Not Available. Available: " +
+	        										findUser.get().displayPayments());
 	    }
+
+	    // Create Order
+	    OrderProduct order = new OrderProduct();
+	    OrderItem orderItem = new OrderItem();
+	    User user = findUser.get();
+	    Product product = findProduct.get();
+	    Address address = addressExists.get();
+
+	    order.setUser(user);
+	    order.setOrderDate(LocalDateTime.now());
+	    order.setShippingAddress(address.getFullAddress());
+	    order.setOrderStatus(OrderStatus.PROCESSING);
+	    order.setPaymentStatus(PaymentStatus.PAID);
+	    order.setTotalPrice(orderDetails.getQuantity() * product.getProductPrice());
+
+	    // Update product stock
+	    int newStock = product.getProductQuantity() - orderDetails.getQuantity();
+	    if (newStock < 0) {
+	        throw new CustomException("Insufficient stock to place this order.");
+	    }if(newStock<0) {
+	    product.setProductQuantity(0);}
+
+	    // Update current user's cart
+	    
+	    int remainingQty = cartItem.getProductQuantity() - orderDetails.getQuantity();
+	    if (remainingQty <= 0) {
+	        cartItemRepo.delete(cartItem);
+	    } else {
+	        cartItem.setProductQuantity(remainingQty);
+	        cartItem.setTotalPrice(remainingQty * product.getProductPrice());
+	        cartItemRepo.save(cartItem);
+	    }
+
+	    // Re-validate other users' carts
+	    List<CartItem> productList = cartItemRepo.findAllByProduct(product);
+	    for (CartItem item : productList) {
+	        if (!item.getUser().getUserId().equals(orderDetails.getUserId())) {
+	            int cartQty = item.getProductQuantity();
+	            int available = product.getProductQuantity();
+
+	            if (cartQty > available) {
+	                if (available <= 0) {
+	                    cartItemRepo.delete(item);
+	                } else {
+	                    item.setProductQuantity(available);
+	                    item.setTotalPrice(available * product.getProductPrice());
+	                    cartItemRepo.save(item);
+	                }
+	            }
+	        }
+	    }
+	    orderItem.setOrder(order);
+	    orderItem.setProduct(product);
+	    orderItem.setQuantity(orderDetails.getQuantity());
+	    List<OrderItem> items = new ArrayList<>();
+	    items.add(orderItem);
+	    order.setItems(items);
+	    orderRepo.save(order);
+
+	    
 	    ApiResponse<OrderProduct> response = new ApiResponse<>();
 	    response.setData(order);
 	    response.setMessage("Order Placed Successfully");
 	    return ResponseEntity.ok(response);
-	
 	}
+
 
 	public ResponseEntity<ApiResponse<List<OrderProduct>>> getOrderByUser(Long userId) {
 		
