@@ -3,6 +3,7 @@ package com.example.service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -56,14 +57,6 @@ public class UserServiceImpl implements UserService{
 			throw new CustomException("User Already Exists Please Login");
 		}
 		User newUser = new User();
-		if (user.getShippingAddress() != null) {
-		    for (Address address : user.getShippingAddress()) {
-		        address.setUser(newUser);
-		    }
-		    newUser.setShippingAddress(user.getShippingAddress());
-		} else {
-			throw new CustomException("Shipping Address Cannot be Empty");
-		}
 
 		if (user.getPaymentDetails() != null) {
 		    newUser.setPaymentDetails(user.getPaymentDetails());
@@ -80,7 +73,9 @@ public class UserServiceImpl implements UserService{
 			throw new CustomException("ShippingAddress Cannot be Empty");
 			
 		}
-
+			for (Address address : user.getShippingAddress()) {
+		        address.setUser(newUser);
+		    }
 			BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 			String hashedPassword = encoder.encode(user.getUserPassword());
 			newUser.setUserEmail(user.getUserEmail());
@@ -123,17 +118,14 @@ public class UserServiceImpl implements UserService{
 		oldUser.setUserName(newUser.getUserName());
 		oldUser.setUserEmail(newUser.getUserEmail());
 		
-		if (newUser.getShippingAddress() != null) {
+		 List<Address> existingAddresses = newUser.getShippingAddress();
+		    existingAddresses.clear();
 		    for (Address address : newUser.getShippingAddress()) {
-		        address.setUser(oldUser);
+		        address.setUser(oldUser); // maintain bidirectional link
+		        existingAddresses.add(address);
 		    }
-		    oldUser.setShippingAddress(newUser.getShippingAddress());
-		} else {
-		    oldUser.setShippingAddress(new ArrayList<>());
-		}
-
 		oldUser.setPaymentDetails(newUser.getPaymentDetails());
-		
+
 		userRepo.save(oldUser);
 		ApiResponse<User> response = new ApiResponse<>();
 		response.setData(oldUser);
@@ -195,7 +187,7 @@ public class UserServiceImpl implements UserService{
 		addressRepo.deleteAllByUserId(userId);
 		userRepo.deleteById(userId);
 		ApiResponse<User> response = new ApiResponse<>();
-		response.setMessage("User Deleted Successfully");
+		response.setMessage("User with Role "+exists.get().getUserRole()+" Deleted Successfully");
 		return ResponseEntity.ok(response);
 	}
 

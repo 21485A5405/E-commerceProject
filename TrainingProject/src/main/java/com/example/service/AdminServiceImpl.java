@@ -43,7 +43,8 @@ public class AdminServiceImpl implements AdminService{
 	private CurrentUser currentUser;
 	private UserTokenRepo userTokenRepo;
 	
-	public AdminServiceImpl(UserRepo userRepo, ProductRepo productRepo, OrderRepo orderRepo, UserTokenRepo userTokenRepo, CurrentUser currentUser) {
+	public AdminServiceImpl(UserRepo userRepo, ProductRepo productRepo, OrderRepo orderRepo, 
+						UserTokenRepo userTokenRepo, CurrentUser currentUser) {
 		this.userRepo = userRepo;
 		this.productRepo = productRepo;
 		this.orderRepo = orderRepo;
@@ -56,29 +57,38 @@ public class AdminServiceImpl implements AdminService{
 			if(exists.isPresent()) {
 				throw new CustomException("Admin Already Exists Please Login");
 			}
-			
-			List<Address> addresses = newAdmin.getShippingAddress();
-			if (addresses != null) {
-			    for (Address address : addresses) {
-			        address.setUser(newAdmin);
-			    }
-			} else {
-			    newAdmin.setShippingAddress(new ArrayList<>());
+			if(newAdmin.getUserName() == null) {
+				throw new CustomException("UserName Cannot be Empty");
+			}else if(newAdmin.getUserEmail() == null) {
+				throw new CustomException("UserEmail Cannot be Empty");
+			}else if(newAdmin.getShippingAddress() == null) {
+				throw new CustomException("Shipping Address Cannot be Empty");
+			}else if(newAdmin.getPaymentDetails() == null) {
+				throw new CustomException("Payment Details Cannot be Empty");
 			}
-			
+			User newUser = new User();
+			List<Address> addresses = newAdmin.getShippingAddress();
+			    for (Address address : addresses) {
+			        address.setUser(newUser);
+			}
+		    newUser.setShippingAddress(newAdmin.getShippingAddress());
+		    newUser.setPaymentDetails(newAdmin.getPaymentDetails());
+		    
 			Set<AdminPermissions> permissions = newAdmin.getUserPermissions();
 			if (permissions == null || permissions.isEmpty()) {
 			    throw new CustomException("Invalid Permissions");
 			}
-			newAdmin.setUserName(newAdmin.getUserName());
-			newAdmin.setUserEmail(newAdmin.getUserEmail());
+			newUser.setUserPermissions(newAdmin.getUserPermissions());
+			newUser.setUserName(newAdmin.getUserName());
+			newUser.setUserEmail(newAdmin.getUserEmail());
+			newUser.setUserRole(Role.ADMIN);
 			BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 			String hashedPassword = encoder.encode(newAdmin.getUserPassword());
-			newAdmin.setUserPassword(hashedPassword);
-			userRepo.save(newAdmin);
+			newUser.setUserPassword(hashedPassword);
+			userRepo.save(newUser);
 
 			ApiResponse<User> response = new ApiResponse<>();
-			response.setData(newAdmin);
+			response.setData(newUser);
 			response.setMessage("New Admin Added Successfully");
 			return ResponseEntity.ok(response);
 		}
@@ -139,21 +149,18 @@ public class AdminServiceImpl implements AdminService{
 		admin.setUserName(newAdmin.getUserName());
 		admin.setUserEmail(newAdmin.getUserEmail());
 		
-		if (newAdmin.getShippingAddress() != null) {
+		 List<Address> existingAddresses = admin.getShippingAddress();
+		    existingAddresses.clear();
 		    for (Address address : newAdmin.getShippingAddress()) {
-		        address.setUser(admin);
+		        address.setUser(admin); // maintain bidirectional link
+		        existingAddresses.add(address);
 		    }
-		    admin.setShippingAddress(newAdmin.getShippingAddress());
-		} else {
-		    admin.setShippingAddress(new ArrayList<>());
-		}
-
 		admin.setPaymentDetails(newAdmin.getPaymentDetails());
 		
 		userRepo.save(admin);
 		ApiResponse<User> response = new ApiResponse<>();
 		response.setData(admin);
-		response.setMessage("User Updated Successfully");
+		response.setMessage("Admin Updated Successfully");
 		return ResponseEntity.ok(response);
 	}
 	

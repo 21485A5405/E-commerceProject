@@ -20,6 +20,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.NoArgsConstructor;
 
 @Entity
@@ -36,12 +38,14 @@ public class User {
 
 	
 	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-	private List<Address> shippingAddress;
+	@NotNull(message =" Shipping Address Cannot be Null")
+	private List<@Valid @NotNull Address> shippingAddress;
 
     @ElementCollection
     @CollectionTable(name = "paymentDetails", joinColumns = @JoinColumn(name = "userId"))
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    private List<PaymentInfo> paymentDetails;
+	@NotNull(message =" PaymentDetails Cannot be Null")
+    private List<@Valid @NotNull PaymentInfo> paymentDetails;
 
     @Enumerated(EnumType.STRING)
     private Role userRole;

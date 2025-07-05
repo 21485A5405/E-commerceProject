@@ -19,6 +19,8 @@ import com.example.model.Product;
 import com.example.model.User;
 import com.example.service.AdminService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/admins")
 public class AdminController {
@@ -31,7 +33,7 @@ public class AdminController {
 	}
 	
 	@PostMapping("/register-admin")
-	public ResponseEntity<ApiResponse<User>> adminData(@RequestBody User admin) {
+	public ResponseEntity<ApiResponse<User>> RegisterAdmin(@Valid @RequestBody User admin) {
 		return adminService.createAdmin(admin);
 	}
 	

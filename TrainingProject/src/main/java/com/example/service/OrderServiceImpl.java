@@ -123,7 +123,6 @@ public class OrderServiceImpl implements OrderService{
 	 		        }
 	 		    }
 	 		}
-
 	 	    orderItem.setOrder(order);
 	 	    orderItem.setProduct(product);
 	 	    orderItem.setQuantity(orderDetails.getQuantity());

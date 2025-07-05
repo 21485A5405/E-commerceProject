@@ -7,6 +7,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 public class Address {
@@ -19,7 +20,8 @@ public class Address {
     @JoinColumn(name = "userId", nullable = false)
 	@JsonIgnore
     private User user;
-
+	
+	@NotNull(message = "Full address cannot be null")
 	private String fullAddress;
 
     public Long getAddressId() {

@@ -42,7 +42,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 	
 	        if (token != null && !token.isBlank()) {
 	            UserToken userToken =  userTokenRepo.findByUserToken(token)
-	                .orElseThrow(() -> new UnAuthorizedException("Invalid or expired token"));
+	                .orElseThrow(() -> new UnAuthorizedException("Token Not Found / Token is Expired"));
 	
 	            currentUser.setUser(userToken.getUser());
 	        }

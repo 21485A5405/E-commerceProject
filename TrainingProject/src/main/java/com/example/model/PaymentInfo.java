@@ -3,6 +3,7 @@ package com.example.model;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.validation.constraints.NotNull;
 import lombok.ToString;
 
 @ToString
@@ -10,8 +11,10 @@ import lombok.ToString;
 public class PaymentInfo {
 	
     @Enumerated(EnumType.STRING)
+    @NotNull(message = "Payment Method cannot be null")
     private PaymentMethod paymentMethod;
-
+    
+    @NotNull(message = "Account Details cannot be null")
     private String accountDetails;
 
 	public PaymentMethod getPaymentMethod() {

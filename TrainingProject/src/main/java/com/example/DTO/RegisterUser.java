@@ -5,13 +5,17 @@ import java.util.List;
 import com.example.model.Address;
 import com.example.model.PaymentInfo;
 
+import jakarta.validation.constraints.NotNull;
+
 public class RegisterUser {
 	
 	private String userName;
 	private String userEmail;
 	private String userPassword;
 	
+	@NotNull(message = " Shipping Address Cannot Be Null")
 	private List<Address> shippingAddress;
+	@NotNull(message = " payment Details Cannot Be Null")
 	private List<PaymentInfo> paymentDetails;
 	
 	public String getUserName() {

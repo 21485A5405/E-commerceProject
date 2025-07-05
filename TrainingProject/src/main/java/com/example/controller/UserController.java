@@ -18,6 +18,8 @@ import com.example.model.AdminPermissions;
 import com.example.model.User;
 import com.example.service.UserService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/users")
 public class UserController {
@@ -30,7 +32,7 @@ public class UserController {
 	}
 	
 	@PostMapping("/register-user")
-	public ResponseEntity<ApiResponse<User>> createUser(@RequestBody RegisterUser user) {
+	public ResponseEntity<ApiResponse<User>> createUser(@Valid @RequestBody RegisterUser user) {
 		return userService.saveUser(user);
 	}
 	
