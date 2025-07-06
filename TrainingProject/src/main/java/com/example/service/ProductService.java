@@ -9,9 +9,7 @@ import com.example.model.Product;
 
 public interface ProductService {
 	
-	public ResponseEntity<ApiResponse<Product>> saveProduct(Product product, Long userId);
-	
-	public ResponseEntity<ApiResponse<Product>> productUpdate(Long productId, Product product, Long userId);
+	public ResponseEntity<ApiResponse<Product>> productUpdate(Long productId, Product product);
 	
 	public ResponseEntity<ApiResponse<Product>> deleteById(Long productId);
 	
@@ -22,5 +20,7 @@ public interface ProductService {
 	public ResponseEntity<ApiResponse<List<Product>>> displayAllProducts();
 
 	public ResponseEntity<ApiResponse<List<Product>>> getProductBetweenPrice(String category, double minPrice, double maxPrice);
+
+	public ResponseEntity<ApiResponse<Product>> saveProduct(Product product);
 
 }

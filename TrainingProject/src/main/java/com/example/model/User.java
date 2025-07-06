@@ -38,14 +38,12 @@ public class User {
 
 	
 	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-	@NotNull(message =" Shipping Address Cannot be Null")
-	private List<@Valid @NotNull Address> shippingAddress;
+	private List<Address> shippingAddress;
 
     @ElementCollection
     @CollectionTable(name = "paymentDetails", joinColumns = @JoinColumn(name = "userId"))
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-	@NotNull(message =" PaymentDetails Cannot be Null")
-    private List<@Valid @NotNull PaymentInfo> paymentDetails;
+    private List<PaymentInfo> paymentDetails;
 
     @Enumerated(EnumType.STRING)
     private Role userRole;

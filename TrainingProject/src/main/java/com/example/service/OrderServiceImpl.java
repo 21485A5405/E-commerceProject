@@ -114,7 +114,7 @@ public class OrderServiceImpl implements OrderService{
 	    if (newStock < 0) {
 	        throw new CustomException("Insufficient stock to place this order.");
 	    }if(newStock<0) {
-	    product.setProductQuantity(0);}
+	    product.setProductQuantity(newStock); }
 
 	    // Update current user's cart
 	    

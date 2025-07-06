@@ -13,6 +13,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.example.DTO.LoginDetails;
+import com.example.DTO.RegisterAdmin;
 import com.example.DTO.UpdateUser;
 import com.example.authentication.CurrentUser;
 import com.example.controller.ApiResponse;
@@ -52,7 +53,7 @@ public class AdminServiceImpl implements AdminService{
 		this.userTokenRepo = userTokenRepo;
 	}
 	
-	public ResponseEntity<ApiResponse<User>> createAdmin(User newAdmin) {
+	public ResponseEntity<ApiResponse<User>> createAdmin(RegisterAdmin newAdmin) {
 			Optional<User> exists = userRepo.findByUserEmail(newAdmin.getUserEmail());
 			if(exists.isPresent()) {
 				throw new CustomException("Admin Already Exists Please Login");

@@ -17,7 +17,6 @@ import com.example.model.Role;
 import com.example.model.User;
 import com.example.repo.ProductRepo;
 import com.example.repo.UserRepo;
-import com.example.repo.UserTokenRepo;
 
 import jakarta.transaction.Transactional;
 
@@ -35,18 +34,16 @@ public class ProductServiceImpl implements ProductService{
 		this.currentUser = currentUser;
 	}
 
-	public ResponseEntity<ApiResponse<Product>> saveProduct(Product product, Long userId) {
-				
-		Optional<User> user = userRepo.findById(userId);
-		
-		if(!user.isPresent()) {
-			
-			throw new UserNotFoundException("User Not Found");
-		}
+	public ResponseEntity<ApiResponse<Product>> saveProduct(Product product) {
 		
 		User currUser = currentUser.getUser();
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
+		}
+		Optional<User> user = userRepo.findById(currUser.getUserId());
+		if(!user.isPresent()) {
+			
+			throw new UserNotFoundException("User Not Found");
 		}
 		if(currUser.getUserRole() == Role.CUSTOMER) {
 			throw new UnAuthorizedException("User Dont Have Permission To Add Product");
@@ -81,7 +78,7 @@ public class ProductServiceImpl implements ProductService{
 	}
 
 	@Transactional
-	public ResponseEntity<ApiResponse<Product>> productUpdate(Long productId, Product newProduct, Long userId) {
+	public ResponseEntity<ApiResponse<Product>> productUpdate(Long productId, Product newProduct) {
 		
 		Optional<Product> exists= productRepo.findById(productId);
 		

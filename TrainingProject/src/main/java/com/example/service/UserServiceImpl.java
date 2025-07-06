@@ -58,11 +58,12 @@ public class UserServiceImpl implements UserService{
 		}
 		User newUser = new User();
 
-		if (user.getPaymentDetails() != null) {
+		 List<Address> addresses = user.getShippingAddress();
+		    for (Address address : addresses) {
+		        address.setUser(newUser);
+		    }
+		    newUser.setShippingAddress(addresses);
 		    newUser.setPaymentDetails(user.getPaymentDetails());
-		}else {
-			throw new UnAuthorizedException("Payment Cannot be Null");
-		}
 		if(user.getUserName() == null) {
 			throw new CustomException("UserName Cannot be Empty");
 		}else if(user.getUserEmail() == null) {
@@ -73,9 +74,6 @@ public class UserServiceImpl implements UserService{
 			throw new CustomException("ShippingAddress Cannot be Empty");
 			
 		}
-			for (Address address : user.getShippingAddress()) {
-		        address.setUser(newUser);
-		    }
 			BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 			String hashedPassword = encoder.encode(user.getUserPassword());
 			newUser.setUserEmail(user.getUserEmail());

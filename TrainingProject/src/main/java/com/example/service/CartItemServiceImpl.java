@@ -222,7 +222,7 @@ public class CartItemServiceImpl implements CartItemService{
 		if(exists.isPresent()) { // update Existing quantity 
 			cartItem = exists.get();
 			cartItem.setProductQuantity(newQuantity);
-			cartItem.setTotalPrice(newQuantity*product.getProductPrice());
+			cartItem.setTotalPrice(newQuantity);
 		}
 		ApiResponse<CartItem> response = new ApiResponse<>();
 		response.setData(cartItem);

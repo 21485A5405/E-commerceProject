@@ -25,14 +25,14 @@ public class ProductController {
 		this.productService = productService;
 	}
 
-	@PostMapping("/add-product/{userId}")
-	public ResponseEntity<ApiResponse<Product>> addProduct(@RequestBody Product product, @PathVariable Long userId) {		
-		return productService.saveProduct(product, userId);
+	@PostMapping("/add-product")
+	public ResponseEntity<ApiResponse<Product>> addProduct(@RequestBody Product product) {		
+		return productService.saveProduct(product);
 	}
 	
-	@PutMapping("/update/{productId}/{userId}")
-	public ResponseEntity<ApiResponse<Product>> updateProductById(@PathVariable Long productId, @RequestBody Product product, @PathVariable Long userId) {
-		return productService.productUpdate(productId, product, userId);
+	@PutMapping("/update-product/{productId}")
+	public ResponseEntity<ApiResponse<Product>> updateProductById(@PathVariable Long productId, @RequestBody Product product) {
+		return productService.productUpdate(productId, product);
 		
 		
 	}
