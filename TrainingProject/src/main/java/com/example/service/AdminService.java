@@ -15,11 +15,11 @@ public interface AdminService {
 	
 	public ResponseEntity<ApiResponse<User>> createAdmin(RegisterAdmin admin) ;
 
-	public ResponseEntity<ApiResponse<User>> getAdminById(Long adminId);
+	public ResponseEntity<ApiResponse<User>> getAdmin(Long adminId);
 
-	public ResponseEntity<ApiResponse<User>> updateAdminById(Long adminId, UpdateUser newAdmin);
+	public ResponseEntity<ApiResponse<User>> updateAdmin(UpdateUser newAdmin);
 
-	public ResponseEntity<ApiResponse<User>> deleteAdminById(Long adminId);
+	public ResponseEntity<ApiResponse<User>> deleteAdmin();
 
 	public ResponseEntity<ApiResponse<List<User>>> getAllAdmins();
 

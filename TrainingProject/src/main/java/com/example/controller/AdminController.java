@@ -38,13 +38,13 @@ public class AdminController {
 		return adminService.createAdmin(admin);
 	}
 	
-	@GetMapping("/get-admin-by-id/{adminId}")
+	@GetMapping("/get-admin/{adminId}")
 	public ResponseEntity<ApiResponse<User>> getAdmin(@PathVariable Long adminId) {
-		return adminService.getAdminById(adminId);
+		return adminService.getAdmin(adminId);
 	}
 	
 	@GetMapping("/get-all-admins")
-	public ResponseEntity<ApiResponse<List<User>>> getAdmin() {
+	public ResponseEntity<ApiResponse<List<User>>> getAdmins() {
 		return adminService.getAllAdmins();
 	}
 	
@@ -68,14 +68,14 @@ public class AdminController {
 		return adminService.getAllProductIds();
 	}
 	
-	@PutMapping("/update-admin/{adminId}")
-	public ResponseEntity<ApiResponse<User>> updateAdmin(@PathVariable Long adminId, @RequestBody UpdateUser newAdmin) {
-		return adminService.updateAdminById(adminId, newAdmin);
+	@PutMapping("/update-admin")
+	public ResponseEntity<ApiResponse<User>> updateAdmin( @RequestBody UpdateUser newAdmin) {
+		return adminService.updateAdmin(newAdmin);
 	}
 
-	@DeleteMapping("/delete-admin-by-id/{adminId}")
-	public ResponseEntity<ApiResponse<User>> deleteAdmin(@PathVariable Long adminId) {
-		return adminService.deleteAdminById(adminId);
+	@DeleteMapping("/delete-admin-by-id")
+	public ResponseEntity<ApiResponse<User>> deleteAdmin() {
+		return adminService.deleteAdmin();
 	}
 	
 	@GetMapping("/get-all-orders")

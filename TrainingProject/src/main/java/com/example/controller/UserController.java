@@ -40,14 +40,15 @@ public class UserController {
 	public ResponseEntity<ApiResponse<?>> loginUser(@RequestBody LoginDetails details) {
 		return userService.loginUser(details);
 	}
-	@GetMapping("/get-user-by-id/{userId}")
-	public ResponseEntity<ApiResponse<User>> getUser(@PathVariable Long userId) {
-		return userService.getUserById(userId);
+	
+	@GetMapping("/get-user")
+	public ResponseEntity<ApiResponse<User>> getUser() {
+		return userService.getUser();
 	}
 	
-	@PutMapping("/update-user/{userId}")
-	public ResponseEntity<ApiResponse<User>> updateUser(@PathVariable Long userId, @RequestBody UpdateUser user) {
-		return userService.updateUserById(userId, user);
+	@PutMapping("/update-user")
+	public ResponseEntity<ApiResponse<User>> updateUser(@RequestBody UpdateUser user) {
+		return userService.updateUser(user);
 	}
 	
 	@PutMapping("/change-password/{eMail}/{newPassword}")
@@ -55,9 +56,9 @@ public class UserController {
 		return userService.changeUserPassword(eMail, newPassword);
 	}
 	
-	@DeleteMapping("/delete-user-by-id/{userId}")
-	public ResponseEntity<ApiResponse<User>> deleteUser(@PathVariable Long userId) {
-		return userService.deleteUserById(userId);
+	@DeleteMapping("/delete-user")
+	public ResponseEntity<ApiResponse<User>> deleteUser() {
+		return userService.deleteUser();
 		
 	}
 	

@@ -40,11 +40,7 @@ public class ProductServiceImpl implements ProductService{
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
 		}
-		Optional<User> user = userRepo.findById(currUser.getUserId());
-		if(!user.isPresent()) {
-			
-			throw new UserNotFoundException("User Not Found");
-		}
+
 		if(currUser.getUserRole() == Role.CUSTOMER) {
 			throw new UnAuthorizedException("User Dont Have Permission To Add Product");
 		}

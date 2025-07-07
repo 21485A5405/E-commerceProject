@@ -12,19 +12,19 @@ import jakarta.transaction.Transactional;
 
 public interface CartItemService {
 	
-	public ResponseEntity<ApiResponse<CartItem>> addProductToCart(Long userId,Long productId, int quantity);
+	public ResponseEntity<ApiResponse<CartItem>> addProductToCart(Long productId, int quantity);
 	
-	public ResponseEntity<ApiResponse<CartItem>> getCartItems(Long userId, Long productId);
+	public ResponseEntity<ApiResponse<CartItem>> getCartItems(Long productId);
 	
-	public ResponseEntity<ApiResponse<CartItem>> deleteUserAndProduct(Long userId, Long productId);
+	public ResponseEntity<ApiResponse<CartItem>> deleteUserAndProduct(Long productId);
 	
-	public ResponseEntity<ApiResponse<List<CartItem>>> getItemsByUserId(Long userId);
+	public ResponseEntity<ApiResponse<List<CartItem>>> getItemsByUser();
 
 	@Transactional
 	@Modifying
-	public ResponseEntity<ApiResponse<List<CartItem>>> deleteAllbyUserId(Long userId);
+	public ResponseEntity<ApiResponse<List<CartItem>>> deleteAllbyUser();
 
-	public ResponseEntity<ApiResponse<CartItem>> updateCart(Long userId, Long productId, int newQuantity);
+	public ResponseEntity<ApiResponse<CartItem>> updateCart(Long productId, int newQuantity);
 
 
 }

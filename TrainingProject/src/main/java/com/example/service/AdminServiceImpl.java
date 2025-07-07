@@ -94,7 +94,7 @@ public class AdminServiceImpl implements AdminService{
 			return ResponseEntity.ok(response);
 		}
 
-	public ResponseEntity<ApiResponse<User>> getAdminById(Long adminId) {
+	public ResponseEntity<ApiResponse<User>> getAdmin(Long adminId) {
 
 		
 		User currUser = currentUser.getUser();
@@ -122,17 +122,17 @@ public class AdminServiceImpl implements AdminService{
 	}
 
 	@Transactional
-	public ResponseEntity<ApiResponse<User>> updateAdminById(Long adminId, UpdateUser newAdmin) {
-		
-		Optional<User> u = userRepo.findById(adminId);
+	public ResponseEntity<ApiResponse<User>> updateAdmin(UpdateUser newAdmin) {
 		User currUser = currentUser.getUser();
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
 		}
+		Optional<User> u = userRepo.findById(currUser.getUserId());
+		
 		if(!u.isPresent()) {
 			throw new UserNotFoundException("Admin Not Found");
 		}
-		if(currUser.getUserId() != adminId) {
+		if(currUser.getUserId() != currUser.getUserId()) {
 			throw new UnAuthorizedException("You Are Not Allowed To Update Another Admin Details");
 		}
 		
@@ -166,31 +166,18 @@ public class AdminServiceImpl implements AdminService{
 	}
 	
 	@Transactional
-	public ResponseEntity<ApiResponse<User>> deleteAdminById(Long adminId) {
+	public ResponseEntity<ApiResponse<User>> deleteAdmin() {
 
 		User currUser = currentUser.getUser();
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
 		}
-		Optional<User> exists = userRepo.findById(adminId);
-		if(!exists.isPresent()) {
-			
-			throw new AdminNotFoundException("Admin Not Found");
-		}
-		if(exists.get().getUserRole()!=Role.ADMIN) {
-			throw new AdminNotFoundException("User Not Allowed To Delete Admin Details");
-		}
-	    if (!currUser.getUserId().equals(adminId)) {
-	        throw new UnAuthorizedException("Not Authorized to Delete Another Admin's Details");
-	    }
-		else {
-			
-			userTokenRepo.deleteAllByUserId(adminId);
-			userRepo.deleteById(adminId);
-			ApiResponse<User> response = new ApiResponse<>();
-			response.setMessage("Admin Deleted Successfully");
-			return ResponseEntity.ok(response);
-		}
+		
+		userTokenRepo.deleteAllByUserId(currUser.getUserId());
+		userRepo.deleteById(currUser.getUserId());
+		ApiResponse<User> response = new ApiResponse<>();
+		response.setMessage("Admin Deleted Successfully");
+		return ResponseEntity.ok(response);
 	}
 
 	public ResponseEntity<ApiResponse<List<User>>> getAllAdmins() {
