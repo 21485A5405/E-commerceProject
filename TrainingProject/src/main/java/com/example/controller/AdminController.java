@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.DTO.RegisterAdmin;
 import com.example.DTO.LoginDetails;
 import com.example.DTO.UpdateUser;
 import com.example.model.OrderProduct;
@@ -34,17 +33,17 @@ public class AdminController {
 	}
 	
 	@PostMapping("/register-admin")
-	public ResponseEntity<ApiResponse<User>> RegisterAdmin(@Valid @RequestBody RegisterAdmin admin) {
+	public ResponseEntity<ApiResponse<User>> RegisterAdmin(@Valid @RequestBody User admin) {
 		return adminService.createAdmin(admin);
 	}
 	
-	@GetMapping("/get-admin/{adminId}")
+	@GetMapping("/get-admin-by-id/{adminId}")
 	public ResponseEntity<ApiResponse<User>> getAdmin(@PathVariable Long adminId) {
-		return adminService.getAdmin(adminId);
+		return adminService.getAdminById(adminId);
 	}
 	
 	@GetMapping("/get-all-admins")
-	public ResponseEntity<ApiResponse<List<User>>> getAdmins() {
+	public ResponseEntity<ApiResponse<List<User>>> getAdmin() {
 		return adminService.getAllAdmins();
 	}
 	
@@ -68,14 +67,14 @@ public class AdminController {
 		return adminService.getAllProductIds();
 	}
 	
-	@PutMapping("/update-admin")
-	public ResponseEntity<ApiResponse<User>> updateAdmin( @RequestBody UpdateUser newAdmin) {
-		return adminService.updateAdmin(newAdmin);
+	@PutMapping("/update-admin/{adminId}")
+	public ResponseEntity<ApiResponse<User>> updateAdmin(@PathVariable Long adminId, @RequestBody UpdateUser newAdmin) {
+		return adminService.updateAdminById(adminId, newAdmin);
 	}
 
-	@DeleteMapping("/delete-admin-by-id")
-	public ResponseEntity<ApiResponse<User>> deleteAdmin() {
-		return adminService.deleteAdmin();
+	@DeleteMapping("/delete-admin-by-id/{adminId}")
+	public ResponseEntity<ApiResponse<User>> deleteAdmin(@PathVariable Long adminId) {
+		return adminService.deleteAdminById(adminId);
 	}
 	
 	@GetMapping("/get-all-orders")

@@ -15,11 +15,11 @@ public interface UserService {
 	
 	public ResponseEntity<ApiResponse<User>> saveUser(RegisterUser user);
 
-	public ResponseEntity<ApiResponse<User>> updateUser(UpdateUser user);
+	public ResponseEntity<ApiResponse<User>> updateUserById(Long userId, UpdateUser user);
 
-	public ResponseEntity<ApiResponse<User>> getUser();
+	public ResponseEntity<ApiResponse<User>> getUserById(Long userId);
 
-	public ResponseEntity<ApiResponse<User>> deleteUser();
+	public ResponseEntity<ApiResponse<User>> deleteUserById(Long userId);
 	
 	public ResponseEntity<ApiResponse<User>> changeUserPassword(String eMail, String newPassword);
 

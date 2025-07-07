@@ -34,13 +34,19 @@ public class ProductServiceImpl implements ProductService{
 		this.currentUser = currentUser;
 	}
 
-	public ResponseEntity<ApiResponse<Product>> saveProduct(Product product) {
+	public ResponseEntity<ApiResponse<Product>> saveProduct(Product product, Long userId) {
+				
+		Optional<User> user = userRepo.findById(userId);
+		
+		if(!user.isPresent()) {
+			
+			throw new UserNotFoundException("User Not Found");
+		}
 		
 		User currUser = currentUser.getUser();
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
 		}
-
 		if(currUser.getUserRole() == Role.CUSTOMER) {
 			throw new UnAuthorizedException("User Dont Have Permission To Add Product");
 		}
@@ -74,7 +80,7 @@ public class ProductServiceImpl implements ProductService{
 	}
 
 	@Transactional
-	public ResponseEntity<ApiResponse<Product>> productUpdate(Long productId, Product newProduct) {
+	public ResponseEntity<ApiResponse<Product>> productUpdate(Long productId, Product newProduct, Long userId) {
 		
 		Optional<Product> exists= productRepo.findById(productId);
 		

@@ -25,35 +25,35 @@ public class CartItemController {
 		this.cartItemService = cartItemService;	
 	}
 	
-	@PostMapping("/add-to-cart/{productId}/{quantity}")
-	public ResponseEntity<ApiResponse<CartItem>> addToCart(@PathVariable Long productId, @PathVariable int quantity) {
-		return cartItemService.addProductToCart(productId, quantity);
+	@PostMapping("/add-to-cart/{userId}/{productId}/{quantity}")
+	public ResponseEntity<ApiResponse<CartItem>> addToCart(@PathVariable Long userId, @PathVariable Long productId, @PathVariable int quantity) {
+		return cartItemService.addProductToCart(userId,productId, quantity);
 		
 	}
 	
-	@GetMapping("/get-by-user-and-product/{productId}")
-	public ResponseEntity<ApiResponse<CartItem>> getCartItems(@PathVariable Long productId) {
-		return cartItemService.getCartItems(productId);
+	@GetMapping("/get-by-user-and-product/{userId}/{productId}")
+	public ResponseEntity<ApiResponse<CartItem>> getCartItems(@PathVariable Long userId, @PathVariable Long productId) {
+		return cartItemService.getCartItems(userId, productId);
 		
 	}
 	
-	@GetMapping("/get-all-by-user")
-	public ResponseEntity<ApiResponse<List<CartItem>>> getItemsByUserId() {
-		return cartItemService.getItemsByUser();
+	@GetMapping("/get-all-by-user/{userId}")
+	public ResponseEntity<ApiResponse<List<CartItem>>> getItemsByUserId(@PathVariable Long userId) {
+		return cartItemService.getItemsByUserId(userId);
 	}
 	
-	@PutMapping("/update-cart/{productId}/{newQuantity}")
-	public ResponseEntity<ApiResponse<CartItem>> updateCart(@PathVariable Long productId, @PathVariable int newQuantity) {
-		return cartItemService.updateCart(productId, newQuantity);
+	@PutMapping("/update-cart/{userId}/{productId}/{newQuantity}")
+	public ResponseEntity<ApiResponse<CartItem>> updateCart(@PathVariable Long userId, @PathVariable Long productId, @PathVariable int newQuantity) {
+		return cartItemService.updateCart(userId, productId, newQuantity);
 	}
 
-	@DeleteMapping("/delete-all-by-user")
-	public ResponseEntity<ApiResponse<List<CartItem>>> deleteitems() {
-		return cartItemService.deleteAllbyUser();
+	@DeleteMapping("/delete-all-by-userid/{userId}")
+	public ResponseEntity<ApiResponse<List<CartItem>>> deleteitems(@PathVariable Long userId) {
+		return cartItemService.deleteAllbyUserId(userId);
 	}
 	
-	@DeleteMapping("/delete-cart/{productId}")
-	public ResponseEntity<ApiResponse<CartItem>> deleteFromCart(@PathVariable Long productId) {
-		return cartItemService.deleteUserAndProduct(productId);
+	@DeleteMapping("/delete-cart/{userId}/{productId}")
+	public ResponseEntity<ApiResponse<CartItem>> deleteFromCart(@PathVariable Long userId, @PathVariable Long productId) {
+		return cartItemService.deleteUserAndProduct(userId, productId);
 	}
 }

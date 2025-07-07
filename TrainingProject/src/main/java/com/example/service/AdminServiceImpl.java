@@ -13,7 +13,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.example.DTO.LoginDetails;
-import com.example.DTO.RegisterAdmin;
 import com.example.DTO.UpdateUser;
 import com.example.authentication.CurrentUser;
 import com.example.controller.ApiResponse;
@@ -53,7 +52,7 @@ public class AdminServiceImpl implements AdminService{
 		this.userTokenRepo = userTokenRepo;
 	}
 	
-	public ResponseEntity<ApiResponse<User>> createAdmin(RegisterAdmin newAdmin) {
+	public ResponseEntity<ApiResponse<User>> createAdmin(User newAdmin) {
 			Optional<User> exists = userRepo.findByUserEmail(newAdmin.getUserEmail());
 			if(exists.isPresent()) {
 				throw new CustomException("Admin Already Exists Please Login");
@@ -94,7 +93,7 @@ public class AdminServiceImpl implements AdminService{
 			return ResponseEntity.ok(response);
 		}
 
-	public ResponseEntity<ApiResponse<User>> getAdmin(Long adminId) {
+	public ResponseEntity<ApiResponse<User>> getAdminById(Long adminId) {
 
 		
 		User currUser = currentUser.getUser();
@@ -105,15 +104,17 @@ public class AdminServiceImpl implements AdminService{
 		if(!exists.isPresent()) {
 			throw new AdminNotFoundException("Admin Not Found");
 		}
-		if(exists.get().getUserRole()!=Role.ADMIN) {
-			throw new CustomException("User "+adminId +" is Not An Admin");
+		if(currUser.getUserRole()!=Role.ADMIN) {
+			throw new CustomException("User Dont Have Access to See Admin Details");
 		}
 		
 		boolean isManager = currUser.getUserPermissions().contains(AdminPermissions.Manager);
 
 	    if (!currUser.getUserId().equals(adminId) && !isManager) {
 	        throw new UnAuthorizedException("Not Authorized to See Another Admin's Details");
-	    }
+	    }if(exists.get().getUserRole()!=Role.ADMIN) {
+			throw new CustomException("User "+adminId +" is Not An Admin");
+		}
 			User admin = exists.get();
 			ApiResponse<User> adminFound = new ApiResponse<>();
 			adminFound.setData(admin);
@@ -122,17 +123,17 @@ public class AdminServiceImpl implements AdminService{
 	}
 
 	@Transactional
-	public ResponseEntity<ApiResponse<User>> updateAdmin(UpdateUser newAdmin) {
+	public ResponseEntity<ApiResponse<User>> updateAdminById(Long adminId, UpdateUser newAdmin) {
+		
+		Optional<User> u = userRepo.findById(adminId);
 		User currUser = currentUser.getUser();
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
 		}
-		Optional<User> u = userRepo.findById(currUser.getUserId());
-		
 		if(!u.isPresent()) {
 			throw new UserNotFoundException("Admin Not Found");
 		}
-		if(currUser.getUserId() != currUser.getUserId()) {
+		if(currUser.getUserId() != adminId) {
 			throw new UnAuthorizedException("You Are Not Allowed To Update Another Admin Details");
 		}
 		
@@ -166,18 +167,31 @@ public class AdminServiceImpl implements AdminService{
 	}
 	
 	@Transactional
-	public ResponseEntity<ApiResponse<User>> deleteAdmin() {
+	public ResponseEntity<ApiResponse<User>> deleteAdminById(Long adminId) {
 
 		User currUser = currentUser.getUser();
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
 		}
-		
-		userTokenRepo.deleteAllByUserId(currUser.getUserId());
-		userRepo.deleteById(currUser.getUserId());
-		ApiResponse<User> response = new ApiResponse<>();
-		response.setMessage("Admin Deleted Successfully");
-		return ResponseEntity.ok(response);
+		Optional<User> exists = userRepo.findById(adminId);
+		if(!exists.isPresent()) {
+			
+			throw new AdminNotFoundException("Admin Not Found");
+		}
+		if(exists.get().getUserRole()!=Role.ADMIN) {
+			throw new AdminNotFoundException("User Not Allowed To Delete Admin Details");
+		}
+	    if (!currUser.getUserId().equals(adminId)) {
+	        throw new UnAuthorizedException("Not Authorized to Delete Another Admin's Details");
+	    }
+		else {
+			
+			userTokenRepo.deleteAllByUserId(adminId);
+			userRepo.deleteById(adminId);
+			ApiResponse<User> response = new ApiResponse<>();
+			response.setMessage("Admin Deleted Successfully");
+			return ResponseEntity.ok(response);
+		}
 	}
 
 	public ResponseEntity<ApiResponse<List<User>>> getAllAdmins() {

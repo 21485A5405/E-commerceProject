@@ -38,18 +38,20 @@ public class CartItemServiceImpl implements CartItemService{
 		
 	}
 	
-	public ResponseEntity<ApiResponse<CartItem>> addProductToCart(Long productId, int quantity) {
+	public ResponseEntity<ApiResponse<CartItem>> addProductToCart(Long userId,Long productId, int quantity) {
+
+		Optional<CartItem> exists = cartItemRepo.findByUserAndProduct(userId, productId);
+		Optional<Product> p = productRepo.findById(productId);
+		Optional<User> u = userRepo.findById(userId);
 		
 		User currUser = currentUser.getUser();
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
-		}
-		Optional<CartItem> exists = cartItemRepo.findByUserAndProduct(currUser.getUserId(), productId);
-		Optional<Product> p = productRepo.findById(productId);
-		Optional<User> u = userRepo.findById(currUser.getUserId());
-		
-		if(!u.isPresent()) {
+		}if(!u.isPresent()) {
 			throw new UserNotFoundException("User Not Found");
+		}
+		if(currUser.getUserId()!= userId) {
+			throw new UnAuthorizedException("User Not Authorized to Add Product Into Another Account");
 		}
 		if(!p.isPresent()) {
 			throw new ProductNotFoundException("Product Not Found to Add Into Cart");
@@ -88,13 +90,16 @@ public class CartItemServiceImpl implements CartItemService{
 		return ResponseEntity.ok(response);
 	}
 
-	public ResponseEntity<ApiResponse<CartItem>> getCartItems(Long productId) {
+	public ResponseEntity<ApiResponse<CartItem>> getCartItems(Long userId, Long productId) {
 		
 		User currUser = currentUser.getUser();
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
 		}
-		Optional<CartItem> c = cartItemRepo.findByUserAndProduct(currUser.getUserId(), productId);
+		if(currUser.getUserId()!= userId) {
+			throw new UnAuthorizedException("Not Authorized To See Another User Cart Details");
+		}
+		Optional<CartItem> c = cartItemRepo.findByUserAndProduct(userId, productId);
 		if(!c.isPresent()) {
 			throw new UserNotFoundException("User with respective Product Not Found In Cart");
 		}
@@ -107,18 +112,21 @@ public class CartItemServiceImpl implements CartItemService{
 	}
 
 	@Transactional
-	public ResponseEntity<ApiResponse<CartItem>> deleteUserAndProduct(Long productId) {
+	public ResponseEntity<ApiResponse<CartItem>> deleteUserAndProduct(Long userId, Long productId) {
 		
 		User currUser = currentUser.getUser();
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
 		}
-		Optional<CartItem> exists = cartItemRepo.findByUserAndProduct(currUser.getUserId(), productId);
+		if(currUser.getUserId()!= userId) {
+			throw new UnAuthorizedException("Not Authorized to Delete Another User Cart Details");
+		}
+		Optional<CartItem> exists = cartItemRepo.findByUserAndProduct(userId, productId);
 		if (!exists.isPresent()) {
 		    throw new ProductNotFoundException("No Items Found For That Product ID and User ID to Delete");
 		}
 		
-		cartItemRepo.deleteByUserAndProduct(currUser.getUserId(), productId);
+		cartItemRepo.deleteByUserAndProduct(userId, productId);
 		CartItem cartItem = exists.get();
 		ApiResponse<CartItem> response = new ApiResponse<>();
 		response.setData(cartItem);
@@ -126,64 +134,72 @@ public class CartItemServiceImpl implements CartItemService{
 		return ResponseEntity.ok(response);
 	}
 
-	public ResponseEntity<ApiResponse<List<CartItem>>> getItemsByUser() {
+	public ResponseEntity<ApiResponse<List<CartItem>>> getItemsByUserId(Long userId) {
 
+		Optional<User> exists = userRepo.findById(userId);
+		if(!exists.isPresent()) {
+			throw new UserNotFoundException("User Not Found");
+		}
 		User currUser = currentUser.getUser();
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
 		}
-		Optional<User> exists = userRepo.findById(currUser.getUserId());
-		if(!exists.isPresent()) {
-			throw new UserNotFoundException("User Not Found");
+		if(currUser.getUserId()!= userId) {
+			throw new UnAuthorizedException("Not Authorized To See Another User Cart Details");
 		}
-		List<CartItem> cartItems = cartItemRepo.findByUserId(currUser.getUserId());
+		List<CartItem> cartItems = cartItemRepo.findByUserId(userId);
 		if(cartItems.isEmpty()) {
 			throw new UserNotFoundException("User Cart Is empty");
 		}
 		
 		ApiResponse<List<CartItem>> response = new ApiResponse<>();
 		response.setData(cartItems);
-		response.setMessage("CartItem of User"+currUser.getUserId());
+		response.setMessage("CartItem of User"+userId);
 		return ResponseEntity.ok(response);
 	}
 
 	@Transactional
-	public ResponseEntity<ApiResponse<List<CartItem>>> deleteAllbyUser() {
-
+	public ResponseEntity<ApiResponse<List<CartItem>>> deleteAllbyUserId(Long userId) {
+		
+		Optional<User> exists = userRepo.findById(userId);
+		if(!exists.isPresent()) {
+			throw new UserNotFoundException("User Not Found");
+		}
 		User currUser = currentUser.getUser();
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
 		}
-		Optional<User> exists = userRepo.findById(currUser.getUserId());
-		if(!exists.isPresent()) {
-			throw new UserNotFoundException("User Not Found");
+		if(currUser.getUserId()!= userId) {
+			throw new UnAuthorizedException("Not Authorized To Delete Another User Cart Details");
 		}
-		List<CartItem> c= cartItemRepo.findByUserId(currUser.getUserId());
+		List<CartItem> c= cartItemRepo.findByUserId(userId);
 		
 		if(c.isEmpty()) {
 			throw new UserNotFoundException("User Cart Is empty");
 		}
 		
-		cartItemRepo.deleteAllByUser(currUser.getUserId());
+		cartItemRepo.deleteAllByUser(userId);
 		ApiResponse<List<CartItem>> response = new ApiResponse<>();
 		response.setData(c);
-		response.setMessage("User "+currUser.getUserId()+" Related Items Deleted From The Cart Successfully");
+		response.setMessage("User "+userId+" Related Items Deleted From The Cart Successfully");
 		return ResponseEntity.ok(response);
 	}
 
 	@Transactional
-	public ResponseEntity<ApiResponse<CartItem>> updateCart(Long productId, int newQuantity) {
+	public ResponseEntity<ApiResponse<CartItem>> updateCart(Long userId, Long productId, int newQuantity) {
+		
+		Optional<CartItem> exists = cartItemRepo.findByUserAndProduct(userId, productId);
+		Optional<Product> p = productRepo.findById(productId);
+		Optional<User> u = userRepo.findById(userId);
 		
 		User currUser = currentUser.getUser();
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
-		}
-		Optional<CartItem> exists = cartItemRepo.findByUserAndProduct(currUser.getUserId(), productId);
-		Optional<Product> p = productRepo.findById(productId);
-		Optional<User> u = userRepo.findById(currUser.getUserId());
-		
-		if(!u.isPresent()) {
+		}if(!u.isPresent()) {
 			throw new UserNotFoundException("User Not Found");
+		}
+		if(currUser.getUserId()!= userId) {
+			throw new UnAuthorizedException("User Not Authorized to Add Product Into Another Account");
 		}
 		if(!p.isPresent()) {
 			throw new ProductNotFoundException("Product Not Found to Add to Cart");
@@ -206,7 +222,7 @@ public class CartItemServiceImpl implements CartItemService{
 		if(exists.isPresent()) { // update Existing quantity 
 			cartItem = exists.get();
 			cartItem.setProductQuantity(newQuantity);
-			cartItem.setTotalPrice(newQuantity);
+			cartItem.setTotalPrice(newQuantity*product.getProductPrice());
 		}
 		ApiResponse<CartItem> response = new ApiResponse<>();
 		response.setData(cartItem);

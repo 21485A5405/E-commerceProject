@@ -12,11 +12,11 @@ import com.example.model.PaymentStatus;
 
 public interface OrderService {
 	
-	public ResponseEntity<ApiResponse<List<OrderProduct>>> getOrderByUser();
+	public ResponseEntity<ApiResponse<List<OrderProduct>>> getOrderByUser(Long userId);
 
-	public ResponseEntity<ApiResponse<OrderProduct>> cancelOrder(Long productId, int quantity);
+	public ResponseEntity<ApiResponse<OrderProduct>> cancelOrder(Long userId, Long productId, int quantity);
 
-	public ResponseEntity<ApiResponse<List<OrderProduct>>> getByUserAndProduct(Long productId);
+	public ResponseEntity<ApiResponse<List<OrderProduct>>> getByUserIdAndProductId(Long userId, Long productId);
 
 	public ResponseEntity<ApiResponse<List<OrderProduct>>> getAllOrders();
 
