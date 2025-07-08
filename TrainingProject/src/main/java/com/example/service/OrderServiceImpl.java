@@ -1,16 +1,18 @@
 package com.example.service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import com.example.DTO.PlaceOrder;
 import com.example.authentication.CurrentUser;
 import com.example.controller.ApiResponse;
+import com.example.dto.PlaceOrder;
+import com.example.enums.OrderStatus;
+import com.example.enums.PaymentStatus;
+import com.example.enums.Role;
 import com.example.exception.CustomException;
 import com.example.exception.ProductNotFoundException;
 import com.example.exception.UnAuthorizedException;
@@ -51,7 +53,7 @@ public class OrderServiceImpl implements OrderService{
 	    Optional<Product> findProduct = productRepo.findById(orderDetails.getProductId());
 	    Optional<CartItem> cart = cartItemRepo.findByUserAndProduct(orderDetails.getUserId(), orderDetails.getProductId());
 	    Optional<Address> addressExists = addressRepo.findById(orderDetails.getAddressId());
-	    
+
 	    User currUser = currentUser.getUser();
 	    if (currUser == null) {
 	        throw new UnAuthorizedException("Please Login");
@@ -69,33 +71,34 @@ public class OrderServiceImpl implements OrderService{
 	        throw new ProductNotFoundException("Please Add Product into Cart to place Order");
 	    }
 	    if (!addressExists.isPresent()) {
-	        throw new CustomException("No Address Found with Address ID For That User" + orderDetails.getAddressId());
+	        throw new CustomException("No Address Found with Address ID For That User: " + orderDetails.getAddressId());
 	    }
 
 	    CartItem cartItem = cart.get();
 	    if (cartItem.getProductQuantity() < orderDetails.getQuantity()) {
-	        throw new CustomException("Only " + cartItem.getProductQuantity() +
-				            " items in cart. Please add " + (orderDetails.getQuantity() 
-				            		- cartItem.getProductQuantity()) +" more to place this order.");
+	        throw new CustomException("Only " + cartItem.getProductQuantity() + " items in cart. Please add " +
+	                (orderDetails.getQuantity() - cartItem.getProductQuantity()) + " more to place this order.");
 	    }
 
 	    List<PaymentInfo> payment = findUser.get().getPaymentDetails();
 	    if (payment == null || payment.isEmpty()) {
 	        throw new CustomException("Payment Method Cannot be Empty");
 	    }
-	    boolean isValid = false;
+	    boolean isValid = false; 
 	    for (PaymentInfo info : payment) {
-	        if (info.getPaymentMethod() == orderDetails.getPaymentType()) {
-	            isValid = true;
-	            break;
-	        }
+	    	if (info.getPaymentMethod() == orderDetails.getPaymentType()) { 
+	    		isValid = true; 
+	    		break; 
+	    		} 
+	    	} 
+	    if (!isValid) { 
+	    	throw new UnAuthorizedException("Selected Payment Method Not Available. Available: " 
+	    					+ findUser.get().displayPayments()); 
+	    	}
+	    if(!addressExists.get().getUser().getUserId().equals(orderDetails.getUserId())) {
+	    	throw new CustomException("Address Not Matched");
 	    }
-	    if (!isValid) {
-	        throw new UnAuthorizedException("Selected Payment Method Not Available. Available: " +
-	        										findUser.get().displayPayments());
-	    }
-
-	    // Create Order
+	    // Create order
 	    OrderProduct order = new OrderProduct();
 	    OrderItem orderItem = new OrderItem();
 	    User user = findUser.get();
@@ -109,15 +112,15 @@ public class OrderServiceImpl implements OrderService{
 	    order.setPaymentStatus(PaymentStatus.PAID);
 	    order.setTotalPrice(orderDetails.getQuantity() * product.getProductPrice());
 
-	    // Update product stock
+	    // Stock Checking
 	    int newStock = product.getProductQuantity() - orderDetails.getQuantity();
 	    if (newStock < 0) {
-	        throw new CustomException("Insufficient stock to place this order.");
-	    }if(newStock<0) {
-	    product.setProductQuantity(0);}
+	        throw new CustomException("Out Of Stock.");
+	    }
+	    product.setProductQuantity(newStock);
+	    productRepo.save(product);
 
 	    // Update current user's cart
-	    
 	    int remainingQty = cartItem.getProductQuantity() - orderDetails.getQuantity();
 	    if (remainingQty <= 0) {
 	        cartItemRepo.delete(cartItem);
@@ -127,39 +130,17 @@ public class OrderServiceImpl implements OrderService{
 	        cartItemRepo.save(cartItem);
 	    }
 
-	    // Re-validate other users' carts
-	    List<CartItem> productList = cartItemRepo.findAllByProduct(product);
-	    for (CartItem item : productList) {
-	        if (!item.getUser().getUserId().equals(orderDetails.getUserId())) {
-	            int cartQty = item.getProductQuantity();
-	            int available = product.getProductQuantity();
-
-	            if (cartQty > available) {
-	                if (available <= 0) {
-	                    cartItemRepo.delete(item);
-	                } else {
-	                    item.setProductQuantity(available);
-	                    item.setTotalPrice(available * product.getProductPrice());
-	                    cartItemRepo.save(item);
-	                }
-	            }
-	        }
-	    }
 	    orderItem.setOrder(order);
 	    orderItem.setProduct(product);
 	    orderItem.setQuantity(orderDetails.getQuantity());
-	    List<OrderItem> items = new ArrayList<>();
-	    items.add(orderItem);
-	    order.setItems(items);
+	    order.setItems(List.of(orderItem));
 	    orderRepo.save(order);
 
-	    
 	    ApiResponse<OrderProduct> response = new ApiResponse<>();
 	    response.setData(order);
 	    response.setMessage("Order Placed Successfully");
 	    return ResponseEntity.ok(response);
 	}
-
 
 	public ResponseEntity<ApiResponse<List<OrderProduct>>> getOrderByUser(Long userId) {
 		
@@ -169,10 +150,10 @@ public class OrderServiceImpl implements OrderService{
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");
 		}
-		if(currUser.getUserId()!= userId ) {
-			throw new UnAuthorizedException("Not Authorized to See Another Users Order Details");
+		if(!userRepo.findById(userId).isPresent()) {
+			throw new UserNotFoundException("User Not Found");
 		}
-
+		
 		boolean isSelf = currUser.getUserId().equals(userId);
 		boolean isManager = currUser.getUserPermissions().contains(AdminPermissions.Manager);
 		boolean isOrderManager = currUser.getUserPermissions().contains(AdminPermissions.Order_Manager);

@@ -1,4 +1,4 @@
-package com.example.model;
+package com.example.enums;
 
 public enum OrderStatus {
     PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED, REFUNDED, PAYMENT_FAILED

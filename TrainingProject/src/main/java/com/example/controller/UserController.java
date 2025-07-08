@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.DTO.LoginDetails;
-import com.example.DTO.RegisterUser;
-import com.example.DTO.UpdateUser;
+import com.example.dto.LoginDetails;
+import com.example.dto.RegisterUser;
+import com.example.dto.UpdateUser;
 import com.example.model.AdminPermissions;
 import com.example.model.User;
 import com.example.service.UserService;

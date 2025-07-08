@@ -21,7 +21,6 @@ public interface ProductRepo extends JpaRepository<Product, Long>{
 	    @Param("minPrice") double minPrice,
 	    @Param("maxPrice") double maxPrice);
 
-
 	@Query("SELECT p.productId FROM Product p")
 	List<Long> getAllProductIds();
 }

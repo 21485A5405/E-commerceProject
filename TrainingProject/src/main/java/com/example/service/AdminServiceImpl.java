@@ -12,10 +12,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.example.DTO.LoginDetails;
-import com.example.DTO.UpdateUser;
 import com.example.authentication.CurrentUser;
 import com.example.controller.ApiResponse;
+import com.example.dto.LoginDetails;
+import com.example.dto.RegisterAdmin;
+import com.example.dto.UpdateUser;
+import com.example.enums.Role;
 import com.example.exception.AdminNotFoundException;
 import com.example.exception.CustomException;
 import com.example.exception.UnAuthorizedException;
@@ -24,7 +26,6 @@ import com.example.model.Address;
 import com.example.model.AdminPermissions;
 import com.example.model.OrderProduct;
 import com.example.model.Product;
-import com.example.model.Role;
 import com.example.model.User;
 import com.example.model.UserToken;
 import com.example.repo.OrderRepo;
@@ -52,7 +53,7 @@ public class AdminServiceImpl implements AdminService{
 		this.userTokenRepo = userTokenRepo;
 	}
 	
-	public ResponseEntity<ApiResponse<User>> createAdmin(User newAdmin) {
+	public ResponseEntity<ApiResponse<User>> createAdmin(RegisterAdmin newAdmin) {
 			Optional<User> exists = userRepo.findByUserEmail(newAdmin.getUserEmail());
 			if(exists.isPresent()) {
 				throw new CustomException("Admin Already Exists Please Login");
@@ -132,6 +133,9 @@ public class AdminServiceImpl implements AdminService{
 		}
 		if(!u.isPresent()) {
 			throw new UserNotFoundException("Admin Not Found");
+		}
+		if(currUser.getUserRole() !=Role.ADMIN) {
+			throw new UnAuthorizedException("User Not Allowed To Update Another Admin Details");
 		}
 		if(currUser.getUserId() != adminId) {
 			throw new UnAuthorizedException("You Are Not Allowed To Update Another Admin Details");
@@ -335,6 +339,9 @@ public class AdminServiceImpl implements AdminService{
 		if(!adminExists.isPresent()) {
 			
 			throw new AdminNotFoundException("Invalid Email");
+		}
+		if(userTokenRepo.findByUser(adminExists.get()) !=null) {
+			throw new CustomException("Admin Already Logged In");
 		}
 		if(adminExists.get().getUserRole()!=Role.ADMIN) {
 			throw new UnAuthorizedException(adminExists.get().getUserId()+" is Not Admin Please Provide Admin Details");

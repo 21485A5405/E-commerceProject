@@ -1,11 +1,9 @@
 package com.example.model;
 
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.example.enums.Role;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.persistence.CascadeType;
@@ -20,8 +18,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import lombok.NoArgsConstructor;
 
 @Entity
@@ -33,10 +29,10 @@ public class User {
 	private Long userId;
 	private String userName;
 	private String userEmail;
+	
 	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 	private String userPassword;
 
-	
 	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Address> shippingAddress;
 

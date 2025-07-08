@@ -2,6 +2,8 @@ package com.example.model;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.example.enums.OrderStatus;
+import com.example.enums.PaymentStatus;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.CascadeType;

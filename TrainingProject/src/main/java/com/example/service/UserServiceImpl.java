@@ -12,17 +12,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.example.DTO.LoginDetails;
-import com.example.DTO.RegisterUser;
-import com.example.DTO.UpdateUser;
 import com.example.authentication.CurrentUser;
 import com.example.controller.ApiResponse;
+import com.example.dto.LoginDetails;
+import com.example.dto.RegisterUser;
+import com.example.dto.UpdateUser;
+import com.example.enums.Role;
 import com.example.exception.CustomException;
 import com.example.exception.UnAuthorizedException;
 import com.example.exception.UserNotFoundException;
 import com.example.model.Address;
 import com.example.model.AdminPermissions;
-import com.example.model.Role;
 import com.example.model.User;
 import com.example.model.UserToken;
 import com.example.repo.AddressRepo;
@@ -228,7 +228,9 @@ public class UserServiceImpl implements UserService{
 		if(!exists.isPresent()) {
 			throw new CustomException("User DoesNot Exists Please Register");
 		}
-		
+		if(userTokenRepo.findByUser(exists.get()) !=null) {
+			throw new CustomException("User Already Logged In");
+		}
 		if(exists.get().getUserRole() != Role.CUSTOMER) {
 			throw new UnAuthorizedException("Please Provide User Credentials");
 		}

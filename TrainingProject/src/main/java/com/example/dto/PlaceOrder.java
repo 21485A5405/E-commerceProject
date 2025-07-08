@@ -1,4 +1,4 @@
-package com.example.DTO;
+package com.example.dto;
 
 import com.example.model.PaymentMethod;
 

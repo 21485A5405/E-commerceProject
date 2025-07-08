@@ -1,4 +1,4 @@
-package com.example.model;
+package com.example.enums;
 
 public enum Role {
 	ADMIN, CUSTOMER

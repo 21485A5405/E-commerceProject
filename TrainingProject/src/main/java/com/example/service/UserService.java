@@ -4,10 +4,10 @@ import java.util.Set;
 
 import org.springframework.http.ResponseEntity;
 
-import com.example.DTO.LoginDetails;
-import com.example.DTO.RegisterUser;
-import com.example.DTO.UpdateUser;
 import com.example.controller.ApiResponse;
+import com.example.dto.LoginDetails;
+import com.example.dto.RegisterUser;
+import com.example.dto.UpdateUser;
 import com.example.model.AdminPermissions;
 import com.example.model.User;
 

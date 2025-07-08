@@ -7,13 +7,13 @@ import org.springframework.stereotype.Service;
 
 import com.example.authentication.CurrentUser;
 import com.example.controller.ApiResponse;
+import com.example.enums.Role;
 import com.example.exception.CustomException;
 import com.example.exception.ProductNotFoundException;
 import com.example.exception.UnAuthorizedException;
 import com.example.exception.UserNotFoundException;
 import com.example.model.AdminPermissions;
 import com.example.model.Product;
-import com.example.model.Role;
 import com.example.model.User;
 import com.example.repo.ProductRepo;
 import com.example.repo.UserRepo;
@@ -34,15 +34,8 @@ public class ProductServiceImpl implements ProductService{
 		this.currentUser = currentUser;
 	}
 
-	public ResponseEntity<ApiResponse<Product>> saveProduct(Product product, Long userId) {
-				
-		Optional<User> user = userRepo.findById(userId);
-		
-		if(!user.isPresent()) {
-			
-			throw new UserNotFoundException("User Not Found");
-		}
-		
+	public ResponseEntity<ApiResponse<Product>> saveProduct(Product product) {
+
 		User currUser = currentUser.getUser();
 		if(currUser == null) {
 			throw new UnAuthorizedException("Please Login");

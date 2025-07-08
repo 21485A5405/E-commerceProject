@@ -9,7 +9,7 @@ import com.example.model.Product;
 
 public interface ProductService {
 	
-	public ResponseEntity<ApiResponse<Product>> saveProduct(Product product, Long userId);
+	public ResponseEntity<ApiResponse<Product>> saveProduct(Product product);
 	
 	public ResponseEntity<ApiResponse<Product>> productUpdate(Long productId, Product product, Long userId);
 	

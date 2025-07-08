@@ -36,7 +36,7 @@ public class CartItemServiceImpl implements CartItemService{
 		this.userRepo = userRepo;
 		this.currentUser = currentUser;
 		
-	}
+	}  
 	
 	public ResponseEntity<ApiResponse<CartItem>> addProductToCart(Long userId,Long productId, int quantity) {
 
@@ -82,8 +82,9 @@ public class CartItemServiceImpl implements CartItemService{
 			cartItem.setProduct(product);
 			cartItem.setProductQuantity(quantity);
 			cartItem.setTotalPrice(quantity*product.getProductPrice());
-			cartItemRepo.save(cartItem);
+			
 		}
+		cartItemRepo.save(cartItem);
 		ApiResponse<CartItem> response = new ApiResponse<>();
 		response.setData(cartItem);
 		response.setMessage("Item Added Into Cart Successfully");

@@ -9,9 +9,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.example.enums.OrderStatus;
+import com.example.enums.PaymentStatus;
 import com.example.model.OrderProduct;
-import com.example.model.OrderStatus;
-import com.example.model.PaymentStatus;
 
 import jakarta.transaction.Transactional;
 
