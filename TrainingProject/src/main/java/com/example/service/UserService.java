@@ -8,7 +8,7 @@ import com.example.controller.ApiResponse;
 import com.example.dto.LoginDetails;
 import com.example.dto.RegisterUser;
 import com.example.dto.UpdateUser;
-import com.example.model.AdminPermissions;
+import com.example.enums.AdminPermissions;
 import com.example.model.User;
 
 public interface UserService {

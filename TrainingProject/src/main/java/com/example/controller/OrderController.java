@@ -7,13 +7,17 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.customannotations.ForOrders;
 import com.example.dto.PlaceOrder;
+import com.example.enums.AdminPermissions;
 import com.example.enums.OrderStatus;
 import com.example.enums.PaymentStatus;
+import com.example.enums.Role;
 import com.example.model.OrderProduct;
 import com.example.service.OrderService;
 
@@ -42,19 +46,28 @@ public class OrderController {
 		return orderService.getByUserIdAndProductId(userId, productId);
 	}
 	
-	@GetMapping("/get-by-order-status/{status}")
+	@GetMapping("/get-by-orderstatus/{status}")
+	@ForOrders(validPermissions = {AdminPermissions.Manager,AdminPermissions.Order_Manager},requiredRole = Role.ADMIN)
 	public ResponseEntity<ApiResponse<List<OrderProduct>>> getOrders(@PathVariable OrderStatus status) {
 		return orderService.getOrderStatus(status);
 	}
 	
-	@GetMapping("/get-by-payment-status/{paymentStatus}")
+	@GetMapping("/get-by-paymentstatus/{paymentStatus}")	
+	@ForOrders(validPermissions = {AdminPermissions.Manager,AdminPermissions.Order_Manager},requiredRole = Role.ADMIN)
 	public ResponseEntity<ApiResponse<List<OrderProduct>>> getOrder(@PathVariable PaymentStatus paymentStatus) {
 		return orderService.getOrderByPayment(paymentStatus);
 	}
 	
-	@GetMapping("/getall")
+	@GetMapping("/get-all")
+	@ForOrders(validPermissions = {AdminPermissions.Manager,AdminPermissions.Order_Manager},requiredRole = Role.ADMIN)
 	public ResponseEntity<ApiResponse<List<OrderProduct>>> getAll() {
 		return orderService.getAllOrders();
+	}
+	
+	@PutMapping("update-orderstatus/{orderId}/{status}")
+	@ForOrders(validPermissions = {AdminPermissions.Manager,AdminPermissions.Order_Manager},requiredRole = Role.ADMIN)
+	public ResponseEntity<ApiResponse<OrderProduct>> updateOrderStatus(@PathVariable Long orderId, @PathVariable OrderStatus status) {
+		return orderService.updateOrderStatus(orderId, status);
 	}
 	
 	@DeleteMapping("/cancel-order/{userId}/{productId}/{quantity}")

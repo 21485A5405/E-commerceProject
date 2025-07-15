@@ -5,18 +5,14 @@ import java.util.Optional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import com.example.authentication.CurrentUser;
 import com.example.controller.ApiResponse;
-import com.example.enums.Role;
 import com.example.exception.CustomException;
 import com.example.exception.ProductNotFoundException;
-import com.example.exception.UnAuthorizedException;
-import com.example.exception.UserNotFoundException;
-import com.example.model.AdminPermissions;
 import com.example.model.Product;
-import com.example.model.User;
+import com.example.repo.CartItemRepo;
+import com.example.repo.OrderItemRepo;
+import com.example.repo.OrderRepo;
 import com.example.repo.ProductRepo;
-import com.example.repo.UserRepo;
 
 import jakarta.transaction.Transactional;
 
@@ -25,41 +21,31 @@ public class ProductServiceImpl implements ProductService{
 	
 
 	private ProductRepo productRepo;
-	private UserRepo userRepo;
-	private CurrentUser currentUser;
+	private CartItemRepo cartItemRepo;
+	private OrderRepo orderRepo;
+	private OrderItemRepo orderItemRepo;
 	
-	public ProductServiceImpl(ProductRepo productRepo, UserRepo userRepo, CurrentUser currentUser) {
+	
+	public ProductServiceImpl(ProductRepo productRepo, OrderItemRepo orderItemRepo, CartItemRepo cartItemRepo, OrderRepo orderRepo) {
 		this.productRepo = productRepo;
-		this.userRepo = userRepo;
-		this.currentUser = currentUser;
+		this.cartItemRepo = cartItemRepo;
+		this.orderRepo = orderRepo;
+		this.orderItemRepo = orderItemRepo;
 	}
 
 	public ResponseEntity<ApiResponse<Product>> saveProduct(Product product) {
-
-		User currUser = currentUser.getUser();
-		if(currUser == null) {
-			throw new UnAuthorizedException("Please Login");
-		}
-		if(currUser.getUserRole() == Role.CUSTOMER) {
-			throw new UnAuthorizedException("User Dont Have Permission To Add Product");
-		}
-		if (currUser.getUserRole() == Role.ADMIN &&
-			    !(currUser.getUserPermissions().contains(AdminPermissions.Product_Manager) ||
-			      currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
-			    throw new UnAuthorizedException("Only Product Manager and Manager Have Rights to Add Product");
-			}
 		
 		if(product == null) {
 			throw new ProductNotFoundException("Product Cannot be Empty");
-		}else if(product.getProductName() == null) {
+		}else if(product.getProductName() == null || product.getProductName().isBlank()) {
 			throw new ProductNotFoundException("Product Name Cannot be Null");
-		}else if(product.getProductCategory() == null ) {
+		}else if(product.getProductCategory() == null || product.getProductCategory().isBlank()) {
 			throw new ProductNotFoundException("Product Category Cannot Null");
-		}else if(product.getProductImageURL() == null) {
+		}else if(product.getProductImageURL() == null  || product.getProductImageURL().isBlank()) {
 			throw new ProductNotFoundException("Product ImageURL Cannot be Null");
 		}else if(product.getProductPrice() <= 0.0) {
 			throw new ProductNotFoundException("Product Price Canot be Less than Zero");
-		}else if(product.getProductDescription() == null) {
+		}else if(product.getProductDescription() == null || product.getProductDescription().isBlank()) {
 			throw new ProductNotFoundException("Product Description Cannot be Empty");
 		}else if(product.getProductQuantity() <= 0) {
 			throw new ProductNotFoundException("Product Quantity cannot be less than 0");
@@ -69,11 +55,11 @@ public class ProductServiceImpl implements ProductService{
 		response.setData(product);
 		response.setMessage("New Product Added Successfully");
 	
-	return ResponseEntity.ok(response);
+		return ResponseEntity.ok(response);
 	}
 
 	@Transactional
-	public ResponseEntity<ApiResponse<Product>> productUpdate(Long productId, Product newProduct, Long userId) {
+	public ResponseEntity<ApiResponse<Product>> productUpdate(Long productId, Product newProduct) {
 		
 		Optional<Product> exists= productRepo.findById(productId);
 		
@@ -81,18 +67,6 @@ public class ProductServiceImpl implements ProductService{
 			throw new ProductNotFoundException("Product Not Found");
 		}
 		
-		User currUser = currentUser.getUser();
-		if(currUser == null ) {
-			throw new UnAuthorizedException("Please Login");
-		}
-		if(currUser.getUserRole() == Role.CUSTOMER) {
-			throw new UnAuthorizedException("User Dont Have Permission To Add Product");
-		}
-		if (currUser.getUserRole() == Role.ADMIN &&
-			    !(currUser.getUserPermissions().contains(AdminPermissions.Product_Manager) ||
-			      currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
-			    throw new UnAuthorizedException("Onnly Product Manager and Manager Have Rights to Update Product");
-			}
 			Product product = exists.get();
 			product.setProductName(newProduct.getProductName());
 			product.setProductPrice(newProduct.getProductPrice());
@@ -128,19 +102,9 @@ public class ProductServiceImpl implements ProductService{
 			throw new ProductNotFoundException("Product Not Found");
 			
 		}
-		
-		User currUser = currentUser.getUser();
-		if(currUser == null) {
-			throw new UnAuthorizedException("Please Login");
-		}
-		if(currUser.getUserRole() ==Role.CUSTOMER) {
-			throw new UnAuthorizedException("User Not Allowed to Delete Product");
-		}
-		if (currUser.getUserRole() == Role.ADMIN &&
-			    !(currUser.getUserPermissions().contains(AdminPermissions.Product_Manager) ||
-			      currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
-			    throw new UnAuthorizedException("Only Product Manager or Manager Can Delete Product");
-			}
+			cartItemRepo.deleteById(productId);
+			orderRepo.deleteById(productId);
+			orderItemRepo.deleteAllByProductId(productId);
 			productRepo.deleteById(productId);
 			ApiResponse<Product> response = new ApiResponse<>();
 			response.setMessage("Product Deleted Successfully");

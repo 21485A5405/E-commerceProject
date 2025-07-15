@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.customannotations.ForProduct;
+import com.example.enums.AdminPermissions;
+import com.example.enums.Role;
 import com.example.model.Product;
 import com.example.service.ProductService;
 
@@ -26,13 +29,15 @@ public class ProductController {
 	}
 
 	@PostMapping("/add-product")
+	@ForProduct(validPermissions = { AdminPermissions.Manager, AdminPermissions.Product_Manager},requiredRole = Role.ADMIN)
 	public ResponseEntity<ApiResponse<Product>> addProduct(@RequestBody Product product) {		
 		return productService.saveProduct(product);
 	}
 	
-	@PutMapping("/update/{productId}/{userId}")
-	public ResponseEntity<ApiResponse<Product>> updateProductById(@PathVariable Long productId, @RequestBody Product product, @PathVariable Long userId) {
-		return productService.productUpdate(productId, product, userId);
+	@PutMapping("/update/{productId}")
+	@ForProduct(validPermissions = {AdminPermissions.Manager,AdminPermissions.Product_Manager},requiredRole = Role.ADMIN)
+	public ResponseEntity<ApiResponse<Product>> updateProductById(@PathVariable Long productId, @RequestBody Product product) {
+		return productService.productUpdate(productId, product);
 		
 		
 	}
@@ -43,6 +48,7 @@ public class ProductController {
 	}
 	
 	@DeleteMapping("/delete-by-id/{productId}")
+	@ForProduct(validPermissions = {AdminPermissions.Manager, AdminPermissions.Product_Manager},requiredRole = Role.ADMIN)
 	public ResponseEntity<ApiResponse<Product>> deleteById(@PathVariable Long productId) {
 		return productService.deleteById(productId);
 	}

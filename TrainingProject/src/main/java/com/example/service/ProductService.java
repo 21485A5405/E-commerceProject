@@ -11,7 +11,7 @@ public interface ProductService {
 	
 	public ResponseEntity<ApiResponse<Product>> saveProduct(Product product);
 	
-	public ResponseEntity<ApiResponse<Product>> productUpdate(Long productId, Product product, Long userId);
+	public ResponseEntity<ApiResponse<Product>> productUpdate(Long productId, Product product);
 	
 	public ResponseEntity<ApiResponse<Product>> deleteById(Long productId);
 	

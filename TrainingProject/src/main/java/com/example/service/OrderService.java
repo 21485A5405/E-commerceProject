@@ -25,6 +25,8 @@ public interface OrderService {
 	public ResponseEntity<ApiResponse<List<OrderProduct>>> getOrderByPayment(PaymentStatus paymentStatus);
 
 	public ResponseEntity<ApiResponse<OrderProduct>> placeOrder(PlaceOrder orderDetails);
+
+	public ResponseEntity<ApiResponse<OrderProduct>> updateOrderStatus(Long orderId, OrderStatus status);
 	
 
 }

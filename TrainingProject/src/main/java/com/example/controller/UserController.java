@@ -11,10 +11,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.customannotations.ForUser;
 import com.example.dto.LoginDetails;
 import com.example.dto.RegisterUser;
 import com.example.dto.UpdateUser;
-import com.example.model.AdminPermissions;
+import com.example.enums.AdminPermissions;
+import com.example.enums.Role;
 import com.example.model.User;
 import com.example.service.UserService;
 
@@ -62,6 +64,7 @@ public class UserController {
 	}
 	
 	@PutMapping("/update-user-role/{userId}")
+	@ForUser(validPermissions = {AdminPermissions.Manager, AdminPermissions.User_Manager},requiredRole = Role.ADMIN, isSelfUser = false)
 	public ResponseEntity<ApiResponse<User>> updateRole(@RequestBody Set<AdminPermissions> permissions, @PathVariable Long userId) {
 		
 		return userService.updateUserRole(permissions, userId);

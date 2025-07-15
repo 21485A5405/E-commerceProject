@@ -3,16 +3,18 @@ package com.example.dto;
 import java.util.List;
 import java.util.Set;
 
+import com.example.enums.AdminPermissions;
 import com.example.model.Address;
-import com.example.model.AdminPermissions;
 import com.example.model.PaymentInfo;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 
 public class RegisterAdmin {
 
     private String userName;
+    @Email(message = "Enter Valid Email")
     private String userEmail;
     private String userPassword;
 

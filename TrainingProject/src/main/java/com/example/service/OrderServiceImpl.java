@@ -7,6 +7,7 @@ import java.util.Optional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.example.advicemethods.IsAuthorized;
 import com.example.authentication.CurrentUser;
 import com.example.controller.ApiResponse;
 import com.example.dto.PlaceOrder;
@@ -58,26 +59,26 @@ public class OrderServiceImpl implements OrderService{
 	    if (currUser == null) {
 	        throw new UnAuthorizedException("Please Login");
 	    }
-	    if (!currUser.getUserId().equals(orderDetails.getUserId())) {
-	        throw new UnAuthorizedException("Not Authorized to Place Order with Another User ID");
-	    }
 	    if (!findUser.isPresent()) {
 	        throw new UserNotFoundException("User Not Found");
 	    }
+	    if (!currUser.getUserId().equals(orderDetails.getUserId())) {
+	        throw new UnAuthorizedException("Not Authorized to Place Order with Another User ID");
+	    }
+	    
 	    if (!findProduct.isPresent()) {
 	        throw new ProductNotFoundException("Product Not Available");
 	    }
 	    if (!cart.isPresent()) {
 	        throw new ProductNotFoundException("Please Add Product into Cart to place Order");
 	    }
-	    if (!addressExists.isPresent()) {
-	        throw new CustomException("No Address Found with Address ID For That User: " + orderDetails.getAddressId());
+	    if(!addressExists.get().getUser().getUserId().equals(orderDetails.getUserId())) {
+	    	throw new CustomException("Address Not Matched");
 	    }
 
 	    CartItem cartItem = cart.get();
 	    if (cartItem.getProductQuantity() < orderDetails.getQuantity()) {
-	        throw new CustomException("Only " + cartItem.getProductQuantity() + " items in cart. Please add " +
-	                (orderDetails.getQuantity() - cartItem.getProductQuantity()) + " more to place this order.");
+	        throw new CustomException("Selected Quantity is Greater Than Your Cart Quantity");
 	    }
 
 	    List<PaymentInfo> payment = findUser.get().getPaymentDetails();
@@ -95,9 +96,6 @@ public class OrderServiceImpl implements OrderService{
 	    	throw new UnAuthorizedException("Selected Payment Method Not Available. Available: " 
 	    					+ findUser.get().displayPayments()); 
 	    	}
-	    if(!addressExists.get().getUser().getUserId().equals(orderDetails.getUserId())) {
-	    	throw new CustomException("Address Not Matched");
-	    }
 	    // Create order
 	    OrderProduct order = new OrderProduct();
 	    OrderItem orderItem = new OrderItem();
@@ -109,9 +107,9 @@ public class OrderServiceImpl implements OrderService{
 	    order.setOrderDate(LocalDateTime.now());
 	    order.setShippingAddress(address.getFullAddress());
 	    order.setOrderStatus(OrderStatus.PROCESSING);
-	    order.setPaymentStatus(PaymentStatus.PAID);
+	    order.setPaymentStatus(PaymentStatus.PENDING);
 	    order.setTotalPrice(orderDetails.getQuantity() * product.getProductPrice());
-
+	    
 	    // Stock Checking
 	    int newStock = product.getProductQuantity() - orderDetails.getQuantity();
 	    if (newStock < 0) {
@@ -155,22 +153,23 @@ public class OrderServiceImpl implements OrderService{
 		}
 		
 		boolean isSelf = currUser.getUserId().equals(userId);
-		boolean isManager = currUser.getUserPermissions().contains(AdminPermissions.Manager);
-		boolean isOrderManager = currUser.getUserPermissions().contains(AdminPermissions.Order_Manager);
-		
-		if (!isSelf && !(isManager || isOrderManager)) {
+		boolean isManager = IsAuthorized.isManager(currUser.getUserPermissions());
+		boolean isOrderManager = IsAuthorized.isOrderManager(currUser.getUserPermissions());
+		ApiResponse<List<OrderProduct>> response = new ApiResponse<>();
+		if(isSelf || (isManager || isOrderManager)) {
+			response.setData(orders);
+			response.setMessage("User "+userId+" Orders Details");
+		}
+		else if (!isSelf && !(isManager || isOrderManager)) {
 		    throw new UnAuthorizedException("Not Authorized to View This User's Order Details");
 		}
-		
-		if (currUser.getUserRole() == Role.ADMIN && !(isManager || isOrderManager)) {
+		else if (currUser.getUserRole() == Role.ADMIN && !(isManager || isOrderManager)) {
 		    throw new UnAuthorizedException("You don't have rights to view order details");
 		}
 		if(orders.isEmpty()) {
 			throw new UserNotFoundException("No Order Details Found with Given User ID");
 		}
-		ApiResponse<List<OrderProduct>> response = new ApiResponse<>();
-		response.setData(orders);
-		response.setMessage("User "+userId+" Orders Details");
+		
 		return ResponseEntity.ok(response);
 	}
 
@@ -205,9 +204,6 @@ public class OrderServiceImpl implements OrderService{
 	    }
 	    
 	    Optional<Product> productExists = productRepo.findById(productId);
-//	    if (!productExists.isPresent()) {
-//	        throw new ProductNotFoundException("Product " + productId + " not found");
-//	    }
 
 	    Product product = productExists.get();
 	    product.setProductQuantity(product.getProductQuantity() + items.getQuantity());
@@ -227,43 +223,28 @@ public class OrderServiceImpl implements OrderService{
 			throw new UnAuthorizedException("Please Login");
 		}
 		boolean isSelf = currUser.getUserId().equals(userId);
-		boolean isManager = currUser.getUserPermissions().contains(AdminPermissions.Manager);
-		boolean isOrderManager = currUser.getUserPermissions().contains(AdminPermissions.Order_Manager);
-		
-		if (!isSelf && !(isManager || isOrderManager)) {
+		boolean isManager = IsAuthorized.isManager(currUser.getUserPermissions());
+		boolean isOrderManager = IsAuthorized.isOrderManager(currUser.getUserPermissions());
+		ApiResponse<List<OrderProduct>> response = new ApiResponse<>();
+		List<OrderProduct> orders = orderRepo.findAllByUserAndProduct(userId, productId);
+		if(isSelf || (isManager || isOrderManager)) {
+			response.setData(orders);
+			response.setMessage("User "+userId+" Orders Details");
+		}
+		else if (!isSelf && !(isManager || isOrderManager)) {
 		    throw new UnAuthorizedException("Not Authorized to View This User's Order Details");
 		}
-		
-		if (currUser.getUserRole() == Role.ADMIN && !(isManager || isOrderManager)) {
-		    throw new UnAuthorizedException("Only Manager and Order Manager have rights to view order details");
+		else if (currUser.getUserRole() == Role.ADMIN && !(isManager || isOrderManager)) {
+		    throw new UnAuthorizedException("You don't have rights to view order details");
 		}
-		List<OrderProduct> orders = orderRepo.findAllByUserAndProduct(userId, productId);
-		
 		if(orders.isEmpty()) {
 			throw new ProductNotFoundException("Orders Not Found With This UserID "+userId+" and ProductID "+productId);
 		}
-		ApiResponse<List<OrderProduct>> response = new ApiResponse<>();
-		response.setData(orders);
-		response.setMessage("Orders Details");
 		return ResponseEntity.ok(response);
 	}
-	
+
 	public ResponseEntity<ApiResponse<List<OrderProduct>>> getAllOrders() {
 		
-		User currUser = currentUser.getUser();
-		if(currUser == null) {
-			throw new UnAuthorizedException("Please Login");
-		}
-		boolean isManager = currUser.getUserPermissions().contains(AdminPermissions.Manager);
-		boolean isOrderManager = currUser.getUserPermissions().contains(AdminPermissions.Order_Manager);
-		
-		if (currUser.getUserRole() != Role.ADMIN) {
-		    throw new UnAuthorizedException("User Not Authorized to View This All Order Details");
-		}
-		
-		if (currUser.getUserRole() == Role.ADMIN && !(isManager || isOrderManager)) {
-		    throw new UnAuthorizedException("Only Manager and Order Manager have rights to view All order details");
-		}
 		List<OrderProduct> orderList = orderRepo.findAll();
 		
 		if(orderList.isEmpty()) {
@@ -277,20 +258,7 @@ public class OrderServiceImpl implements OrderService{
 	}
 
 	public ResponseEntity<ApiResponse<List<OrderProduct>>> getOrderStatus(OrderStatus status) {
-		User currUser = currentUser.getUser();
-		if(currUser == null) {
-			throw new UnAuthorizedException("Please Login");
-		}
-		if(currUser.getUserRole()!= Role.ADMIN) {
-			throw new UnAuthorizedException("User Not Allowed to See Order Statuses");
-		}
-
-		boolean isManager = currUser.getUserPermissions().contains(AdminPermissions.Manager);
-		boolean isOrderManager = currUser.getUserPermissions().contains(AdminPermissions.Order_Manager);
-
-		if (currUser.getUserRole() == Role.ADMIN && !(isManager || isOrderManager)) {
-		    throw new UnAuthorizedException("Only Manager and Order Manager have rights to view order Statuses");
-		}
+		
 		List<OrderProduct> orders = orderRepo.findAllByOrderStatus(status);
 		if(orders.isEmpty()) {
 			throw new CustomException("No Order Found with Order Status "+status);
@@ -302,22 +270,9 @@ public class OrderServiceImpl implements OrderService{
 		response.setMessage("Order Details with Order Status "+status);
 		return ResponseEntity.ok(response);
 	}
-	
+
 	public ResponseEntity<ApiResponse<List<OrderProduct>>> getOrderByPayment(PaymentStatus paymentStatus) {
 		
-		User currUser = currentUser.getUser();
-		if(currUser == null) {
-			throw new UnAuthorizedException("Please Login");
-		}
- 		if(currUser.getUserRole()!= Role.ADMIN) {
-			throw new UnAuthorizedException("User Not Allowed to See Payment Statuses");
-		}
- 		boolean isManager = currUser.getUserPermissions().contains(AdminPermissions.Manager);
-		boolean isOrderManager = currUser.getUserPermissions().contains(AdminPermissions.Order_Manager);
-
-		if (currUser.getUserRole() == Role.ADMIN && !(isManager || isOrderManager)) {
-		    throw new UnAuthorizedException("You don't have rights to update user roles");
-		}
 		List<OrderProduct> orders = orderRepo.findAllByPaymentStatus(paymentStatus);
 		if(orders.isEmpty()) {
 			throw new CustomException("No Orders Found With Payment Status "+paymentStatus);
@@ -325,6 +280,17 @@ public class OrderServiceImpl implements OrderService{
 		ApiResponse<List<OrderProduct>> response = new ApiResponse<>();
 		response.setData(orders);
 		response.setMessage("Order Details with Payment Status "+paymentStatus);
+		return ResponseEntity.ok(response);
+	}
+
+	public ResponseEntity<ApiResponse<OrderProduct>> updateOrderStatus(Long orderId, OrderStatus status) {
+		
+		Optional<OrderProduct> orderExists = orderRepo.findById(orderId);
+		
+		orderExists.get().setOrderStatus(status);
+		ApiResponse<OrderProduct> response = new ApiResponse<>();
+		response.setData(orderExists.get());
+		response.setMessage(" Order Status for"+" Order ID "+orderExists.get().getOrderId() +" Updated Sucessfully");
 		return ResponseEntity.ok(response);
 	}
 

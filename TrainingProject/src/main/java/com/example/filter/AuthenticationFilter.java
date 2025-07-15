@@ -33,9 +33,6 @@ public class AuthenticationFilter extends OncePerRequestFilter {
 
     	try {
 	        String token = request.getHeader("Authorization");
-	        if (token != null && token.startsWith("Bearer ")) {
-	            token = token.substring(7);
-	        }
 	
 	        System.out.println("Token received: " + token);
 	

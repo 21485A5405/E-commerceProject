@@ -28,13 +28,11 @@ public class CartItemController {
 	@PostMapping("/add-to-cart/{userId}/{productId}/{quantity}")
 	public ResponseEntity<ApiResponse<CartItem>> addToCart(@PathVariable Long userId, @PathVariable Long productId, @PathVariable int quantity) {
 		return cartItemService.addProductToCart(userId,productId, quantity);
-		
 	}
 	
 	@GetMapping("/get-by-user-and-product/{userId}/{productId}")
 	public ResponseEntity<ApiResponse<CartItem>> getCartItems(@PathVariable Long userId, @PathVariable Long productId) {
 		return cartItemService.getCartItems(userId, productId);
-		
 	}
 	
 	@GetMapping("/get-all-by-user/{userId}")

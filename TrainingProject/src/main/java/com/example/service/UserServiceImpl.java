@@ -1,7 +1,6 @@
 package com.example.service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -12,29 +11,27 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.example.advicemethods.*;
 import com.example.authentication.CurrentUser;
 import com.example.controller.ApiResponse;
 import com.example.dto.LoginDetails;
 import com.example.dto.RegisterUser;
 import com.example.dto.UpdateUser;
+import com.example.enums.AdminPermissions;
 import com.example.enums.Role;
 import com.example.exception.CustomException;
 import com.example.exception.UnAuthorizedException;
 import com.example.exception.UserNotFoundException;
 import com.example.model.Address;
-import com.example.model.AdminPermissions;
 import com.example.model.User;
 import com.example.model.UserToken;
-import com.example.repo.AddressRepo;
-import com.example.repo.CartItemRepo;
-import com.example.repo.OrderRepo;
-import com.example.repo.UserRepo;
-import com.example.repo.UserTokenRepo;
+import com.example.repo.*;
 import jakarta.transaction.Transactional;
 
 @Service
 public class UserServiceImpl implements UserService{
 
+    private final OrderItemRepo orderItemRepo;
 	private CartItemRepo cartItemRepo;
 	private OrderRepo orderRepo;
 	private UserRepo userRepo;
@@ -42,40 +39,42 @@ public class UserServiceImpl implements UserService{
 	private UserTokenRepo userTokenRepo;
 	private AddressRepo addressRepo;
 	
-	public UserServiceImpl(CartItemRepo cartItemRepo, OrderRepo orderRepo, AddressRepo addressRepo, UserRepo userRepo, UserTokenRepo userTokenRepo, CurrentUser currentUser) {
+	public UserServiceImpl(CartItemRepo cartItemRepo, OrderRepo orderRepo, AddressRepo addressRepo, UserRepo userRepo, UserTokenRepo userTokenRepo, CurrentUser currentUser, OrderItemRepo orderItemRepo) {
 		this.cartItemRepo = cartItemRepo;
 		this.orderRepo = orderRepo;
 		this.userRepo = userRepo;
 		this.currentUser = currentUser;
 		this.userTokenRepo = userTokenRepo;
 		this.addressRepo = addressRepo;
+		this.orderItemRepo = orderItemRepo;
 		
 	}
+	
 	public ResponseEntity<ApiResponse<User>> saveUser(RegisterUser user) {
 		Optional<User> exists = userRepo.findByUserEmail(user.getUserEmail());
 		if(exists.isPresent()) {
 			throw new CustomException("User Already Exists Please Login");
 		}
 		User newUser = new User();
-
+		for (Address address : user.getShippingAddress()) {
+	        address.setUser(newUser);
+	    }
+		newUser.setShippingAddress(user.getShippingAddress());
 		if (user.getPaymentDetails() != null) {
 		    newUser.setPaymentDetails(user.getPaymentDetails());
 		}else {
 			throw new UnAuthorizedException("Payment Cannot be Null");
 		}
-		if(user.getUserName() == null) {
+		if(user.getUserName().isBlank()) {
 			throw new CustomException("UserName Cannot be Empty");
-		}else if(user.getUserEmail() == null) {
+		}else if(user.getUserEmail().isBlank()) {
 			throw new CustomException("UserEmail Cannot be Empty");
-		}else if(user.getUserPassword() == null) {
-			throw new CustomException("UserPassword Cannot be Empty");
+		}else if(user.getUserPassword().isBlank() || user.getUserPassword().length()<=5) {
+			throw new CustomException("UserPassword Cannot be Empty / less Than % Characters");
 		}else if(user.getShippingAddress() == null) {
 			throw new CustomException("ShippingAddress Cannot be Empty");
 			
 		}
-			for (Address address : user.getShippingAddress()) {
-		        address.setUser(newUser);
-		    }
 			BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 			String hashedPassword = encoder.encode(user.getUserPassword());
 			newUser.setUserEmail(user.getUserEmail());
@@ -144,14 +143,17 @@ public class UserServiceImpl implements UserService{
 			
 			throw new UserNotFoundException("User Not Found");
 		}
-		if (currUser.getUserRole() == Role.ADMIN &&
-			    !(currUser.getUserPermissions().contains(AdminPermissions.User_Manager) ||
-					      currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
-					    throw new UnAuthorizedException("Only Manager and User_Manager have Right To User Details");
-			}
 		if(currUser.getUserId()!= userId && currUser.getUserRole() != Role.ADMIN) {
 			throw new UnAuthorizedException("Not Allowed to Get Another User Details");
 		}
+		boolean isManager = IsAuthorized.isUserManager(currUser.getUserPermissions());
+		boolean isUserManager = IsAuthorized.isManager(currUser.getUserPermissions());
+		boolean isAdmin = IsAuthorized.isAdmin(currUser.getUserRole());
+		
+		if ( isAdmin && !(isUserManager) || isManager ) {
+				throw new UnAuthorizedException("Only Manager and User_Manager have Right To User Details");
+			}
+		
 		if(exists.get().getUserRole() == Role.ADMIN) {
 			throw new UnAuthorizedException("User "+userId+ " is Not User");
 		}
@@ -176,12 +178,12 @@ public class UserServiceImpl implements UserService{
 			
 			throw new UserNotFoundException("User Not Found");
 		}
-		
 		if(currUser.getUserId()!= userId) {
 			throw new UnAuthorizedException("You Are Not Allowed To Delete Another User");
 		}
 		
 		cartItemRepo.deleteAllByUser(userId);
+		orderItemRepo.deleteAllByOrderId(orderRepo.findById(userId).get().getOrderId());
 		orderRepo.deleteAllByUserId(userId);
 		userTokenRepo.deleteAllByUserId(userId);
 		addressRepo.deleteAllByUserId(userId);
@@ -202,11 +204,9 @@ public class UserServiceImpl implements UserService{
 	    if (!exists.isPresent()) {
 	        throw new UnAuthorizedException("No User found with this Email");
 	    }
-
-	    if (newPassword == null || newPassword.length()<=5) {
+	    if (newPassword.isBlank() || newPassword.length()<=5) {
 	        throw new CustomException("New password cannot be empty or Less Than 5 Characters");
 	    }
-	   
 		if(currUser.getUserId()!= exists.get().getUserId()) {
 			throw new UnAuthorizedException("You Are Not Allowed to Change Another User Password");
 		}
@@ -228,11 +228,11 @@ public class UserServiceImpl implements UserService{
 		if(!exists.isPresent()) {
 			throw new CustomException("User DoesNot Exists Please Register");
 		}
-		if(userTokenRepo.findByUser(exists.get()) !=null) {
-			throw new CustomException("User Already Logged In");
-		}
 		if(exists.get().getUserRole() != Role.CUSTOMER) {
 			throw new UnAuthorizedException("Please Provide User Credentials");
+		}
+		if(userTokenRepo.findByUser(exists.get()) !=null) {
+			throw new CustomException("User Already Logged In");
 		}
 		User currUser = currentUser.getUser();
 		User user = exists.get();
@@ -261,22 +261,9 @@ public class UserServiceImpl implements UserService{
 	public ResponseEntity<ApiResponse<User>> updateUserRole(Set<AdminPermissions> permissions, Long userId) {
 		
 		Optional<User> exists = userRepo.findById(userId);
-		User currUser = currentUser.getUser();
-		if(currUser == null) {
-			throw new UnAuthorizedException("Please Login");
-		}
 		if(!exists.isPresent()) {
 			throw new UserNotFoundException("User Not Found");
 		}
-		
-		if(currUser.getUserRole()!=Role.ADMIN) {
-			throw new UnAuthorizedException("User Dont Have Rights to Update Users Roles");
-		}
-		if (currUser.getUserRole() == Role.ADMIN &&
-			    !(currUser.getUserPermissions().contains(AdminPermissions.User_Manager) ||
-			      currUser.getUserPermissions().contains(AdminPermissions.Manager))) {
-			    throw new UnAuthorizedException("You don't have Rights to Update user Roles");
-			}
 		exists.get().setUserRole(Role.ADMIN);
 		exists.get().setUserPermissions(new HashSet<>(permissions));
 		
