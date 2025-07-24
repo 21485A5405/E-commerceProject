@@ -23,6 +23,7 @@ import com.example.exception.CustomException;
 import com.example.exception.UnAuthorizedException;
 import com.example.exception.UserNotFoundException;
 import com.example.model.Address;
+import com.example.model.PaymentInfo;
 import com.example.model.User;
 import com.example.model.UserToken;
 import com.example.repo.*;
@@ -56,24 +57,13 @@ public class UserServiceImpl implements UserService{
 			throw new CustomException("User Already Exists Please Login");
 		}
 		User newUser = new User();
-		for (Address address : user.getShippingAddress()) {
-	        address.setUser(newUser);
-	    }
-		newUser.setShippingAddress(user.getShippingAddress());
-		if (user.getPaymentDetails() != null) {
-		    newUser.setPaymentDetails(user.getPaymentDetails());
-		}else {
-			throw new UnAuthorizedException("Payment Cannot be Null");
-		}
+
 		if(user.getUserName().isBlank()) {
 			throw new CustomException("UserName Cannot be Empty");
 		}else if(user.getUserEmail().isBlank()) {
 			throw new CustomException("UserEmail Cannot be Empty");
 		}else if(user.getUserPassword().isBlank() || user.getUserPassword().length()<=5) {
 			throw new CustomException("UserPassword Cannot be Empty / less Than % Characters");
-		}else if(user.getShippingAddress() == null) {
-			throw new CustomException("ShippingAddress Cannot be Empty");
-			
 		}
 			BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 			String hashedPassword = encoder.encode(user.getUserPassword());
@@ -185,7 +175,7 @@ public class UserServiceImpl implements UserService{
 		cartItemRepo.deleteAllByUser(userId);
 		orderItemRepo.deleteAllByOrderId(orderRepo.findById(userId).get().getOrderId());
 		orderRepo.deleteAllByUserId(userId);
-		userTokenRepo.deleteAllByUserId(userId);
+		userTokenRepo.deleteByUserId(userId);
 		addressRepo.deleteAllByUserId(userId);
 		userRepo.deleteById(userId);
 		ApiResponse<User> response = new ApiResponse<>();
@@ -272,6 +262,37 @@ public class UserServiceImpl implements UserService{
 		response.setData(exists.get());
 		response.setMessage("User Role Updated Successfully");
 		return ResponseEntity.ok(response);
+	}
+
+	@Override
+	public ResponseEntity<ApiResponse<User>> logOut() {
+		
+		User currUser = currentUser.getUser();
+		userTokenRepo.deleteByUserId(currUser.getUserId());
+		ApiResponse<User> response = new ApiResponse<>();
+		response.setData(currUser);
+		return ResponseEntity.ok(response);
+	}
+
+	public ResponseEntity<String> addAddress(Address address) {
+		
+		User newUser = currentUser.getUser();
+		
+		address.setUser(newUser);
+	    newUser.getShippingAddress().add(address);
+	    newUser.setShippingAddress(newUser.getShippingAddress());
+	    addressRepo.save(address);
+		return ResponseEntity.ok("Address Added Successfully");
+		
+	}
+
+	public ResponseEntity<String> addPayment(PaymentInfo paymentDetails) {
+		
+		User newUser = currentUser.getUser();
+
+		newUser.getPaymentDetails().add(paymentDetails);
+	    userRepo.save(newUser);
+		return ResponseEntity.ok("Payment Added Successfully");
 	}
 	
 }

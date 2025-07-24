@@ -17,6 +17,9 @@ import com.example.dto.RegisterUser;
 import com.example.dto.UpdateUser;
 import com.example.enums.AdminPermissions;
 import com.example.enums.Role;
+import com.example.model.Address;
+import com.example.model.PaymentInfo;
+import com.example.model.PaymentMethod;
 import com.example.model.User;
 import com.example.service.UserService;
 
@@ -68,5 +71,19 @@ public class UserController {
 	public ResponseEntity<ApiResponse<User>> updateRole(@RequestBody Set<AdminPermissions> permissions, @PathVariable Long userId) {
 		
 		return userService.updateUserRole(permissions, userId);
+	}
+	
+	@PostMapping("/add-address")
+	public ResponseEntity<String> addAddress(@RequestBody Address address) {
+		return userService.addAddress(address);
+	}
+	
+	@PostMapping("/add-payment")
+	public ResponseEntity<String> addPayment(PaymentInfo paymentDetails) {
+		return userService.addPayment(paymentDetails);
+	}
+	@DeleteMapping("/logout-user")
+	public ResponseEntity<ApiResponse<User>> logOut() {
+		return userService.logOut();
 	}
 }

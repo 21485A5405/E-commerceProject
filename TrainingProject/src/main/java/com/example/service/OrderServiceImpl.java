@@ -264,7 +264,6 @@ public class OrderServiceImpl implements OrderService{
 			throw new CustomException("No Order Found with Order Status "+status);
 		}
 		
-		
 		ApiResponse<List<OrderProduct>> response = new ApiResponse<>();
 		response.setData(orders);
 		response.setMessage("Order Details with Order Status "+status);

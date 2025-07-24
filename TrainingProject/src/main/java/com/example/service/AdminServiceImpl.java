@@ -13,9 +13,6 @@ import org.springframework.stereotype.Service;
 import com.example.advicemethods.IsAuthorized;
 import com.example.authentication.CurrentUser;
 import com.example.controller.ApiResponse;
-import com.example.customannotations.ForOrders;
-import com.example.customannotations.ForProduct;
-import com.example.customannotations.ForUser;
 import com.example.dto.LoginDetails;
 import com.example.dto.RegisterAdmin;
 import com.example.dto.UpdateUser;
@@ -64,24 +61,9 @@ public class AdminServiceImpl implements AdminService{
 				throw new CustomException("UserName Cannot be Empty");
 			}else if(newAdmin.getUserEmail() == null) {
 				throw new CustomException("UserEmail Cannot be Empty");
-			}else if(newAdmin.getShippingAddress() == null) {
-				throw new CustomException("Shipping Address Cannot be Empty");
-			}else if(newAdmin.getPaymentDetails() == null) {
-				throw new CustomException("Payment Details Cannot be Empty");
 			}
 			User newUser = new User();
-			List<Address> addresses = newAdmin.getShippingAddress();
-			    for (Address address : addresses) {
-			        address.setUser(newUser);
-			}
-		    newUser.setShippingAddress(newAdmin.getShippingAddress());
-		    newUser.setPaymentDetails(newAdmin.getPaymentDetails());
-		    
-			Set<AdminPermissions> permissions = newAdmin.getUserPermissions();
-			if (permissions == null || permissions.isEmpty()) {
-			    throw new CustomException("Invalid Permissions");
-			}
-			newUser.setUserPermissions(newAdmin.getUserPermissions());
+		
 			newUser.setUserName(newAdmin.getUserName());
 			newUser.setUserEmail(newAdmin.getUserEmail());
 			newUser.setUserRole(Role.ADMIN);
@@ -191,7 +173,7 @@ public class AdminServiceImpl implements AdminService{
 	    }
 		else {
 			
-			userTokenRepo.deleteAllByUserId(adminId);
+			userTokenRepo.deleteByUserId(adminId);
 			userRepo.deleteById(adminId);
 			ApiResponse<User> response = new ApiResponse<>();
 			response.setMessage("Admin Deleted Successfully");
@@ -311,5 +293,15 @@ public class AdminServiceImpl implements AdminService{
 		response.setMessage("Admin Login Successful");
 		return ResponseEntity.ok(response);
 	}
+
+	@Override
+	public ResponseEntity<String> logOut() {
+		
+		User user = currentUser.getUser();
+		userTokenRepo.deleteByUserId(user.getUserId());
+		return ResponseEntity.ok("LogOut Successfully");
+	}
+	
+	
 }
 

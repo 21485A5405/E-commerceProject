@@ -5,7 +5,8 @@
 
 import com.example.enums.AdminPermissions;
 import com.example.enums.Role;
-	import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 	
 	import jakarta.persistence.CascadeType;
 	import jakarta.persistence.CollectionTable;
@@ -34,10 +35,10 @@ import com.example.enums.Role;
 		@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 		private String userPassword;
 	
-		@OneToMany(mappedBy = "user")
+		@OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
 		private List<Address> shippingAddress;
 	
-	    @ElementCollection
+	    @ElementCollection(fetch = FetchType.EAGER)
 	    @CollectionTable(name = "paymentDetails", joinColumns = @JoinColumn(name = "userId"))
 	    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 	    private List<PaymentInfo> paymentDetails;
@@ -46,9 +47,10 @@ import com.example.enums.Role;
 	    private Role userRole;
 		
 		@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+		@JsonIgnore
 		private List<CartItem> cartItems;
 		
-		@ElementCollection(targetClass = AdminPermissions.class, fetch = FetchType.EAGER)
+		@ElementCollection(fetch = FetchType.EAGER)
 		@CollectionTable(name = "userPermissions", joinColumns = @JoinColumn(name = "userId"))
 		@Enumerated(EnumType.STRING)
 		@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)

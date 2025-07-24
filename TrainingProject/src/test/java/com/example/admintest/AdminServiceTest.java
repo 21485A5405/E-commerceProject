@@ -55,13 +55,11 @@ public class AdminServiceTest {
 	    dto.setUserEmail("new@admin.com");
 	    dto.setUserName("New Admin");
 	    dto.setUserPassword("password");
-	    dto.setShippingAddress(List.of(new Address()));
 	    PaymentInfo paymentInfo = new PaymentInfo();
 	    paymentInfo.setPaymentMethod(PaymentMethod.CREDIT_CARD);
 	    paymentInfo.setAccountDetails("XXXX-XXXX-XXXX-1234");
 	    List<PaymentInfo> list = new ArrayList<>();
 	    list.add(paymentInfo);
-	    dto.setPaymentDetails(list);
 	    dto.setUserPermissions(Set.of(AdminPermissions.User_Manager));
 
 	    when(userRepo.findByUserEmail("new@admin.com")).thenReturn(Optional.empty());
@@ -138,7 +136,7 @@ public class AdminServiceTest {
 	    ResponseEntity<ApiResponse<User>> response = adminService.deleteAdminById(1L);
 
 	    assertEquals("Admin Deleted Successfully", response.getBody().getMessage());
-	    verify(userTokenRepo).deleteAllByUserId(1L);
+	    verify(userTokenRepo).deleteByUserId(1L);
 	    verify(userRepo).deleteById(1L);
 	}
 

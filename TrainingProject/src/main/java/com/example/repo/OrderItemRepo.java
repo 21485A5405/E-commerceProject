@@ -18,7 +18,7 @@ public interface OrderItemRepo extends JpaRepository<OrderItem, Long>{
 	  
 	@Modifying
 	@Transactional
-	@Query("DELETE FROM OrderItem o WHERE o.orderproduct.orderId = :orderId")
+	@Query("DELETE FROM OrderItem o WHERE o.order.orderId = :orderId")
 	void deleteAllByOrderId(@Param("orderId") Long orderId);
 
 }

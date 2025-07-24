@@ -35,4 +35,6 @@ public interface AdminService {
 
 	public ResponseEntity<ApiResponse<?>> loginAdmin(LoginDetails details);
 
+	public ResponseEntity<String> logOut();
+
 }

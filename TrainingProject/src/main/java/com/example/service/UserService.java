@@ -9,6 +9,9 @@ import com.example.dto.LoginDetails;
 import com.example.dto.RegisterUser;
 import com.example.dto.UpdateUser;
 import com.example.enums.AdminPermissions;
+import com.example.model.Address;
+import com.example.model.PaymentInfo;
+import com.example.model.PaymentMethod;
 import com.example.model.User;
 
 public interface UserService {
@@ -26,5 +29,11 @@ public interface UserService {
 	public ResponseEntity<ApiResponse<?>> loginUser(LoginDetails details);
 
 	public ResponseEntity<ApiResponse<User>> updateUserRole(Set<AdminPermissions> permissions, Long userId);
+
+	public ResponseEntity<ApiResponse<User>> logOut();
+
+	public ResponseEntity<String> addAddress(Address address);
+
+	public ResponseEntity<String> addPayment(PaymentInfo paymentDetails);
 
 }

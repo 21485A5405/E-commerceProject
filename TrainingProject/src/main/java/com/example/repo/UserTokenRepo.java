@@ -26,7 +26,7 @@ public interface UserTokenRepo extends JpaRepository<UserToken, Long>{
 	@Modifying
     @Transactional
     @Query("DELETE FROM UserToken o WHERE o.user.userId = :userId")
-    void deleteAllByUserId(@Param("userId") Long userId);
+    void deleteByUserId(@Param("userId") Long userId);
 	
 
 

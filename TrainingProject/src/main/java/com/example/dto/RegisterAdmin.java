@@ -18,12 +18,6 @@ public class RegisterAdmin {
     private String userEmail;
     private String userPassword;
 
-    @NotNull(message = "Shipping address is required")
-    private List<@Valid @NotNull Address> shippingAddress;
-
-    @NotNull(message = "Payment details are required")
-    private List<@Valid @NotNull PaymentInfo> paymentDetails;
-
     @NotNull(message = "Permissions are required")
     private Set<AdminPermissions> userPermissions;
 
@@ -49,22 +43,6 @@ public class RegisterAdmin {
 
 	public void setUserPassword(String userPassword) {
 		this.userPassword = userPassword;
-	}
-
-	public List<Address> getShippingAddress() {
-		return shippingAddress;
-	}
-
-	public void setShippingAddress(List<Address> shippingAddress) {
-		this.shippingAddress = shippingAddress;
-	}
-
-	public List<PaymentInfo> getPaymentDetails() {
-		return paymentDetails;
-	}
-
-	public void setPaymentDetails(List<PaymentInfo> paymentDetails) {
-		this.paymentDetails = paymentDetails;
 	}
 
 	public Set<AdminPermissions> getUserPermissions() {

@@ -98,4 +98,9 @@ public class AdminController {
 	public ResponseEntity<ApiResponse<?>> login(@RequestBody LoginDetails details) {
 		return adminService.loginAdmin(details);
 	}
+	
+	@DeleteMapping("/logout-admin")
+	public ResponseEntity<String> logOut() {
+		return adminService.logOut();
+	}
 }

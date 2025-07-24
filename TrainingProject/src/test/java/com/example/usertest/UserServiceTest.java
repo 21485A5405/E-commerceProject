@@ -57,7 +57,7 @@ public class UserServiceTest {
 	    assertEquals("User Deleted Successfully", response.getBody().getMessage());
 	    verify(cartItemRepo).deleteAllByUser(1L);
 	    verify(orderRepo).deleteAllByUserId(1L);
-	    verify(userTokenRepo).deleteAllByUserId(1L);
+	    verify(userTokenRepo).deleteByUserId(1L);
 	    verify(addressRepo).deleteAllByUserId(1L);
 	    verify(userRepo).deleteById(1L);
 	}
