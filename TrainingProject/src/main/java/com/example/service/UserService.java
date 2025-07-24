@@ -5,6 +5,7 @@ import java.util.Set;
 import org.springframework.http.ResponseEntity;
 
 import com.example.controller.ApiResponse;
+import com.example.dto.DisplayUser;
 import com.example.dto.LoginDetails;
 import com.example.dto.RegisterUser;
 import com.example.dto.UpdateUser;
@@ -16,7 +17,7 @@ import com.example.model.User;
 
 public interface UserService {
 	
-	public ResponseEntity<ApiResponse<User>> saveUser(RegisterUser user);
+	public ResponseEntity<ApiResponse<DisplayUser>> saveUser(RegisterUser user);
 
 	public ResponseEntity<ApiResponse<User>> updateUserById(Long userId, UpdateUser user);
 

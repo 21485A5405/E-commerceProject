@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import com.example.advicemethods.*;
 import com.example.authentication.CurrentUser;
 import com.example.controller.ApiResponse;
+import com.example.dto.DisplayUser;
 import com.example.dto.LoginDetails;
 import com.example.dto.RegisterUser;
 import com.example.dto.UpdateUser;
@@ -51,7 +52,7 @@ public class UserServiceImpl implements UserService{
 		
 	}
 	
-	public ResponseEntity<ApiResponse<User>> saveUser(RegisterUser user) {
+	public ResponseEntity<ApiResponse<DisplayUser>> saveUser(RegisterUser user) {
 		Optional<User> exists = userRepo.findByUserEmail(user.getUserEmail());
 		if(exists.isPresent()) {
 			throw new CustomException("User Already Exists Please Login");
@@ -73,8 +74,9 @@ public class UserServiceImpl implements UserService{
 			newUser.setUserRole(Role.CUSTOMER);
 			userRepo.save(newUser);
 
-		ApiResponse<User> response = new ApiResponse<>();
-		response.setData(newUser);
+		ApiResponse<DisplayUser> response = new ApiResponse<>();
+		DisplayUser res = new DisplayUser(newUser);
+		response.setData(res);
 		response.setMessage("New User Added Successfully");
 		return ResponseEntity.ok(response);
 	}
@@ -243,7 +245,6 @@ public class UserServiceImpl implements UserService{
 	    
 		ApiResponse<User> response = new ApiResponse<>();
 		response.setMessage("Welcome User");
-		response.setData(user);
 		return ResponseEntity.ok(response);
 	}
 	
