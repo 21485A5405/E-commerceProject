@@ -16,6 +16,7 @@ import com.example.authentication.CurrentUser;
 import com.example.controller.ApiResponse;
 import com.example.dto.DisplayUser;
 import com.example.dto.LoginDetails;
+import com.example.dto.LoginDisplay;
 import com.example.dto.RegisterUser;
 import com.example.dto.UpdateUser;
 import com.example.enums.AdminPermissions;
@@ -213,7 +214,7 @@ public class UserServiceImpl implements UserService{
 	    return ResponseEntity.ok(response);
 	}
 	
-	public ResponseEntity<ApiResponse<?>> loginUser(LoginDetails details) {
+	public ResponseEntity<ApiResponse<LoginDisplay>> loginUser(LoginDetails details) {
 		
 		Optional<User> exists = userRepo.findByUserEmail(details.getLoginEmail());
 		
@@ -242,9 +243,10 @@ public class UserServiceImpl implements UserService{
 	    userToken.setGeneratedAt(LocalDateTime.now());
 	    userToken.setUser(user);
 	    userTokenRepo.save(userToken);
-	    
-		ApiResponse<User> response = new ApiResponse<>();
+	    LoginDisplay res = new LoginDisplay(userToken);
+		ApiResponse<LoginDisplay> response = new ApiResponse<>();
 		response.setMessage("Welcome User");
+		response.setData(res);
 		return ResponseEntity.ok(response);
 	}
 	

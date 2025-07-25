@@ -15,7 +15,6 @@ public class DisplayUser {
 	@Autowired
 	private UserToken token;
 	
-
 	    public DisplayUser(User user) {
 	        this.userId = user.getUserId();
 	        this.userName = user.getUserName();

@@ -10,9 +10,11 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
+import com.example.configuration.SecurityConfiguration;
 import com.example.customannotations.ForUser;
+import com.example.dto.DisplayUser;
 import com.example.dto.LoginDetails;
+import com.example.dto.LoginDisplay;
 import com.example.dto.RegisterUser;
 import com.example.dto.UpdateUser;
 import com.example.enums.AdminPermissions;
@@ -28,21 +30,24 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/users")
 public class UserController {
+
+    private final SecurityConfiguration securityConfiguration;
 	
 	private UserService userService;
 	
-	public UserController(UserService userService) {
+	public UserController(UserService userService, SecurityConfiguration securityConfiguration) {
 		this.userService = userService;
+		this.securityConfiguration = securityConfiguration;
 		
 	}
 	
 	@PostMapping("/register-user")
-	public ResponseEntity<ApiResponse<User>> createUser(@Valid @RequestBody RegisterUser user) {
+	public ResponseEntity<ApiResponse<DisplayUser>> createUser(@Valid @RequestBody RegisterUser user) {
 		return userService.saveUser(user);
 	}
 	
 	@PostMapping("/login-user")
-	public ResponseEntity<ApiResponse<?>> loginUser(@RequestBody LoginDetails details) {
+	public ResponseEntity<ApiResponse<LoginDisplay>> loginUser(@RequestBody LoginDetails details) {
 		return userService.loginUser(details);
 	}
 	@GetMapping("/get-user-by-id/{userId}")

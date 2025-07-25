@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import com.example.controller.ApiResponse;
 import com.example.dto.DisplayUser;
 import com.example.dto.LoginDetails;
+import com.example.dto.LoginDisplay;
 import com.example.dto.RegisterUser;
 import com.example.dto.UpdateUser;
 import com.example.enums.AdminPermissions;
@@ -27,7 +28,7 @@ public interface UserService {
 	
 	public ResponseEntity<ApiResponse<User>> changeUserPassword(String eMail, String newPassword);
 
-	public ResponseEntity<ApiResponse<?>> loginUser(LoginDetails details);
+	public ResponseEntity<ApiResponse<LoginDisplay>> loginUser(LoginDetails details);
 
 	public ResponseEntity<ApiResponse<User>> updateUserRole(Set<AdminPermissions> permissions, Long userId);
 
