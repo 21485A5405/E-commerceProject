@@ -4,16 +4,23 @@ import java.util.List;
 
 import com.example.model.Address;
 import com.example.model.PaymentInfo;
+import com.example.model.User;
 
 public class UpdateUser {
 
 	private String userName;
 	private String userEmail;
-
+	
 	private List<Address> shippingAddress;
 	private List<PaymentInfo> paymentDetails;
 	public String getUserName() {
 		return userName;
+	}
+	public UpdateUser(User user) {
+		this.userName = user.getUserName();
+		this.userEmail = user.getUserEmail();
+		this.shippingAddress = user.getShippingAddress();
+		this.paymentDetails = user.getPaymentDetails();
 	}
 	public void setUserName(String userName) {
 		this.userName = userName;

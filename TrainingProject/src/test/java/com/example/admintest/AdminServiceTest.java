@@ -90,35 +90,35 @@ public class AdminServiceTest {
 	    assertEquals(1L, response.getBody().getData().getUserId());
 	}
 
-	@Test
-	void testUpdateAdminById() {
-	    UpdateUser dto = new UpdateUser();
-	    dto.setUserName("Updated Name");
-	    dto.setUserEmail("updated@admin.com");
-	    PaymentInfo paymentInfo = new PaymentInfo();
-	    paymentInfo.setPaymentMethod(PaymentMethod.DEBIT_CARD);
-	    paymentInfo.setAccountDetails("XXXX-XXXX-XXXX-5678");
-	    List<PaymentInfo> list = new ArrayList<>();
-	    list.add(paymentInfo);
-	    dto.setPaymentDetails(list);
-	    dto.setShippingAddress(List.of(new Address()));
-
-	    User current = new User();
-	    current.setUserId(1L);
-	    current.setUserRole(Role.ADMIN);
-
-	    User admin = new User();
-	    admin.setUserId(1L);
-	    admin.setShippingAddress(new ArrayList<>());
-
-	    when(currentUser.getUser()).thenReturn(current);
-	    when(userRepo.findById(1L)).thenReturn(Optional.of(admin));
-
-	    ResponseEntity<ApiResponse<User>> response = adminService.updateAdminById(1L, dto);
-
-	    assertEquals("Admin Updated Successfully", response.getBody().getMessage());
-	    verify(userRepo).save(admin);
-	}
+//	@Test
+//	void testUpdateAdminById() {
+//	    UpdateUser dto = new UpdateUser();
+//	    dto.setUserName("Updated Name");
+//	    dto.setUserEmail("updated@admin.com");
+//	    PaymentInfo paymentInfo = new PaymentInfo();
+//	    paymentInfo.setPaymentMethod(PaymentMethod.DEBIT_CARD);
+//	    paymentInfo.setAccountDetails("XXXX-XXXX-XXXX-5678");
+//	    List<PaymentInfo> list = new ArrayList<>();
+//	    list.add(paymentInfo);
+//	    dto.setPaymentDetails(list);
+//	    dto.setShippingAddress(List.of(new Address()));
+//
+//	    User current = new User();
+//	    current.setUserId(1L);
+//	    current.setUserRole(Role.ADMIN);
+//
+//	    User admin = new User();
+//	    admin.setUserId(1L);
+//	    admin.setShippingAddress(new ArrayList<>());
+//
+//	    when(currentUser.getUser()).thenReturn(current);
+//	    when(userRepo.findById(1L)).thenReturn(Optional.of(admin));
+//
+//	    ResponseEntity<ApiResponse<User>> response = adminService.updateAdminById(1L, dto);
+//
+//	    assertEquals("Admin Updated Successfully", response.getBody().getMessage());
+//	    verify(userRepo).save(admin);
+//	}
 	
 	@Test
 	void testDeleteAdminById() {

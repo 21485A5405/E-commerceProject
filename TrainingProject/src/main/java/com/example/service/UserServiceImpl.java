@@ -82,7 +82,7 @@ public class UserServiceImpl implements UserService{
 		return ResponseEntity.ok(response);
 	}
 
-	public ResponseEntity<ApiResponse<User>> updateUserById(Long userId, UpdateUser newUser) {
+	public ResponseEntity<ApiResponse<UpdateUser>> updateUserById(Long userId, UpdateUser newUser) {
 		
 		Optional<User> u = userRepo.findById(userId);
 		User currUser = currentUser.getUser();
@@ -119,8 +119,9 @@ public class UserServiceImpl implements UserService{
 		oldUser.setPaymentDetails(newUser.getPaymentDetails());
 
 		userRepo.save(oldUser);
-		ApiResponse<User> response = new ApiResponse<>();
-		response.setData(oldUser);
+		UpdateUser res = new UpdateUser(oldUser);
+		ApiResponse<UpdateUser> response = new ApiResponse<>();
+		response.setData(res);
 		response.setMessage("User Updated Successfully");
 		return ResponseEntity.ok(response);
 	}
@@ -186,7 +187,7 @@ public class UserServiceImpl implements UserService{
 		return ResponseEntity.ok(response);
 	}
 
-	public ResponseEntity<ApiResponse<User>> changeUserPassword(String eMail, String newPassword) {
+	public ResponseEntity<ApiResponse<User>> changeUserPassword(String eMail, String currPassword, String newPassword) {
 		
 	    Optional<User> exists = userRepo.findByUserEmail(eMail);
 	    
@@ -206,26 +207,27 @@ public class UserServiceImpl implements UserService{
 	    
 	    User user = exists.get();
 	    BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+	    String password = encoder.encode(currPassword);
+	    if(!password.equals(user.getUserPassword())) {
+	    	
+	    	throw new UnAuthorizedException("Current Password Is Wrong");
+	    }
 	    user.setUserPassword(encoder.encode(newPassword));
 	    userRepo.save(user);
 	    ApiResponse<User> response = new ApiResponse<>();
-	    response.setData(user);
 	    response.setMessage("User Password Changed Successfully");
 	    return ResponseEntity.ok(response);
 	}
 	
-	public ResponseEntity<ApiResponse<LoginDisplay>> loginUser(LoginDetails details) {
+	public ResponseEntity<LoginDisplay> loginUser(LoginDetails details) {
 		
 		Optional<User> exists = userRepo.findByUserEmail(details.getLoginEmail());
-		
+		System.out.println(details.getLoginEmail()+" "+details.getLoginPassword());
 		if(!exists.isPresent()) {
 			throw new CustomException("User DoesNot Exists Please Register");
 		}
 		if(exists.get().getUserRole() != Role.CUSTOMER) {
 			throw new UnAuthorizedException("Please Provide User Credentials");
-		}
-		if(userTokenRepo.findByUser(exists.get()) !=null) {
-			throw new CustomException("User Already Logged In");
 		}
 		User currUser = currentUser.getUser();
 		User user = exists.get();
@@ -244,10 +246,7 @@ public class UserServiceImpl implements UserService{
 	    userToken.setUser(user);
 	    userTokenRepo.save(userToken);
 	    LoginDisplay res = new LoginDisplay(userToken);
-		ApiResponse<LoginDisplay> response = new ApiResponse<>();
-		response.setMessage("Welcome User");
-		response.setData(res);
-		return ResponseEntity.ok(response);
+		return ResponseEntity.ok(res);
 	}
 	
 	@Transactional
@@ -268,13 +267,11 @@ public class UserServiceImpl implements UserService{
 	}
 
 	@Override
-	public ResponseEntity<ApiResponse<User>> logOut() {
+	public ResponseEntity<String> logOut() {
 		
 		User currUser = currentUser.getUser();
 		userTokenRepo.deleteByUserId(currUser.getUserId());
-		ApiResponse<User> response = new ApiResponse<>();
-		response.setData(currUser);
-		return ResponseEntity.ok(response);
+		return ResponseEntity.ok("LogOut Successfully");
 	}
 
 	public ResponseEntity<String> addAddress(Address address) {

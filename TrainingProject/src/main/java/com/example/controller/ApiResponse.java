@@ -2,6 +2,8 @@ package com.example.controller;
 
 public class ApiResponse<T> {
 	
+	
+	
 	public String getMessage() {
 		return message;
 	}
@@ -27,5 +29,7 @@ public class ApiResponse<T> {
         this.message = message;
         this.data = data;
     }
-
+    public ApiResponse(String message) {
+		this.message = message;
+	}
 }

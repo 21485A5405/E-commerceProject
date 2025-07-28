@@ -15,6 +15,7 @@ import com.example.exception.UserNotFoundException;
 import com.example.model.CartItem;
 import com.example.model.Product;
 import com.example.model.User;
+import com.example.model.UserToken;
 import com.example.repo.CartItemRepo;
 import com.example.repo.ProductRepo;
 import com.example.repo.UserRepo;
@@ -38,7 +39,7 @@ public class CartItemServiceImpl implements CartItemService{
 		
 	}  
 	
-	public ResponseEntity<ApiResponse<CartItem>> addProductToCart(Long userId,Long productId, int quantity) {
+	public ResponseEntity<ApiResponse<CartItem>> addProductToCart(Long userId,Long productId) {
 
 		Optional<CartItem> exists = cartItemRepo.findByUserAndProduct(userId, productId);
 		Optional<Product> p = productRepo.findById(productId);
@@ -61,27 +62,17 @@ public class CartItemServiceImpl implements CartItemService{
 		if(product.getProductQuantity() == 0) {
 			throw new CustomException("Product Out Of Stock");
 		}
-		if(quantity <=0) {
-			throw new CustomException("Quantity Cannot be Less than Zero");
-		}
-		
-		if(product.getProductQuantity()<quantity) {
-			
-			throw new CustomException("Enough Quantity Selected , We have "
-					+product.getProductQuantity()+" Items available. Please Selcct Under "
-							+product.getProductQuantity()+" as Quantity");
-		}
 		CartItem cartItem = null;
 		if(exists.isPresent()) { // only increase the existing quantity 
 			cartItem = exists.get();
-			cartItem.setProductQuantity(cartItem.getProductQuantity()+quantity);
+			cartItem.setProductQuantity(cartItem.getProductQuantity()+1);
 			
 		}else {
 			cartItem = new CartItem();
 			cartItem.setUser(user);
 			cartItem.setProduct(product);
-			cartItem.setProductQuantity(quantity);
-			cartItem.setTotalPrice(quantity*product.getProductPrice());
+			cartItem.setProductQuantity(1);
+			cartItem.setTotalPrice(1*product.getProductPrice());
 			
 		}
 		cartItemRepo.save(cartItem);
@@ -222,12 +213,39 @@ public class CartItemServiceImpl implements CartItemService{
 		CartItem cartItem = null;
 		if(exists.isPresent()) { // update Existing quantity 
 			cartItem = exists.get();
-			cartItem.setProductQuantity(newQuantity);
+			cartItem.setProductQuantity(exists.get().getProductQuantity()+1);
 			cartItem.setTotalPrice(newQuantity*product.getProductPrice());
 		}
 		ApiResponse<CartItem> response = new ApiResponse<>();
 		response.setData(cartItem);
 		response.setMessage("CartItems Updated Successfully");
 		return ResponseEntity.ok(response);
+	}
+
+	public ResponseEntity<ApiResponse<CartItem>> increaseCart(Long userId, Long productId) {
+		Optional<CartItem> cart = cartItemRepo.findByUserAndProduct(userId, productId);
+		Optional<Product> p = productRepo.findById(productId);
+		if(!cart.isPresent()) {
+			throw new CustomException("No Product Found");
+		}
+		cart.get().setProductQuantity(cart.get().getProductQuantity()+1);
+		cart.get().setTotalPrice(cart.get().getProductQuantity()*p.get().getProductPrice());
+        CartItem updated = cartItemRepo.save(cart.get()); // ✅ Save it again
+		cartItemRepo.save(updated);
+		return ResponseEntity.ok(new ApiResponse<>("Quantity Increased", updated));
+	}
+
+	public ResponseEntity<ApiResponse<CartItem>> decreaseCart(Long userId, Long productId) {
+		System.out.println(currentUser.getUser().getUserId());
+		Optional<CartItem> cart = cartItemRepo.findByUserAndProduct(userId, productId);
+		Optional<Product> p = productRepo.findById(productId);
+		if(!cart.isPresent()) {
+			throw new CustomException("No Product Found");
+		}
+		cart.get().setProductQuantity(cart.get().getProductQuantity()-1);
+		cart.get().setTotalPrice(cart.get().getProductQuantity()*p.get().getProductPrice());
+        CartItem updated = cartItemRepo.save(cart.get()); // ✅ Save it again
+		cartItemRepo.save(updated);
+		return ResponseEntity.ok(new ApiResponse<>("Quantity Increased", updated));
 	}
 }

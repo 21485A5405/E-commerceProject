@@ -1,5 +1,7 @@
 package com.example.controller;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
@@ -17,6 +19,7 @@ import com.example.customannotations.ForOrders;
 import com.example.customannotations.ForProduct;
 import com.example.customannotations.ForUser;
 import com.example.dto.LoginDetails;
+import com.example.dto.LoginDisplay;
 import com.example.dto.UpdateUser;
 import com.example.enums.AdminPermissions;
 import com.example.enums.Role;
@@ -79,7 +82,7 @@ public class AdminController {
 	}
 	
 	@PutMapping("/update-admin/{adminId}")
-	public ResponseEntity<ApiResponse<User>> updateAdmin(@PathVariable Long adminId, @RequestBody UpdateUser newAdmin) {
+	public ResponseEntity<ApiResponse<UpdateUser>> updateAdmin(@PathVariable Long adminId, @RequestBody UpdateUser newAdmin) {
 		return adminService.updateAdminById(adminId, newAdmin);
 	}
 
@@ -95,7 +98,7 @@ public class AdminController {
 	}
 	
 	@PostMapping("/login-admin")
-	public ResponseEntity<ApiResponse<?>> login(@RequestBody LoginDetails details) {
+	public ResponseEntity<LoginDisplay> login(@RequestBody LoginDetails details) {
 		return adminService.loginAdmin(details);
 	}
 	

@@ -12,14 +12,11 @@ public class DisplayUser {
 	private String userEmail;
 	private String userToken;
 	
-	@Autowired
-	private UserToken token;
 	
 	    public DisplayUser(User user) {
 	        this.userId = user.getUserId();
 	        this.userName = user.getUserName();
 	        this.userEmail = user.getUserEmail();
-	        this.userToken = token.getUserToken();
 	    }
 	public Long getUserId() {
 		return userId;
@@ -38,11 +35,5 @@ public class DisplayUser {
 	}
 	public void setUserEmail(String userEmail) {
 		this.userEmail = userEmail;
-	}
-	public String getUserToken() {
-		return userToken;
-	}
-	public void setUserToken(String userToken) {
-		this.userToken = userToken;
 	}
 }

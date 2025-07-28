@@ -14,6 +14,7 @@ import com.example.advicemethods.IsAuthorized;
 import com.example.authentication.CurrentUser;
 import com.example.controller.ApiResponse;
 import com.example.dto.LoginDetails;
+import com.example.dto.LoginDisplay;
 import com.example.dto.RegisterAdmin;
 import com.example.dto.UpdateUser;
 import com.example.enums.AdminPermissions;
@@ -108,7 +109,7 @@ public class AdminServiceImpl implements AdminService{
 	}
 
 	@Transactional
-	public ResponseEntity<ApiResponse<User>> updateAdminById(Long adminId, UpdateUser newAdmin) {
+	public ResponseEntity<ApiResponse<UpdateUser>> updateAdminById(Long adminId, UpdateUser newAdmin) {
 		
 		Optional<User> u = userRepo.findById(adminId);
 		User currUser = currentUser.getUser();
@@ -148,8 +149,9 @@ public class AdminServiceImpl implements AdminService{
 		admin.setPaymentDetails(newAdmin.getPaymentDetails());
 		
 		userRepo.save(admin);
-		ApiResponse<User> response = new ApiResponse<>();
-		response.setData(admin);
+		UpdateUser res = new UpdateUser(admin);
+		ApiResponse<UpdateUser> response = new ApiResponse<>();
+		response.setData(res);
 		response.setMessage("Admin Updated Successfully");
 		return ResponseEntity.ok(response);
 	}
@@ -261,19 +263,16 @@ public class AdminServiceImpl implements AdminService{
 		return ResponseEntity.ok(response);
 	}
 
-	public ResponseEntity<ApiResponse<?>> loginAdmin(LoginDetails details) {
+	public ResponseEntity<LoginDisplay> loginAdmin(LoginDetails details) {
 		
 		Optional<User> adminExists = userRepo.findByUserEmail(details.getLoginEmail());
 		
 		if(!adminExists.isPresent()) {
 			
-			throw new AdminNotFoundException("Invalid Email");
+			throw new AdminNotFoundException("Admin Not Found");
 		}
 		if(adminExists.get().getUserRole()!=Role.ADMIN) {
 			throw new UnAuthorizedException(adminExists.get().getUserId()+" is Not Admin Please Provide Admin Details");
-		}
-		if(userTokenRepo.findByUser(adminExists.get()) !=null) {
-			throw new CustomException("Admin Already Logged In");
 		}
 		User user = adminExists.get();
 		UserToken userToken = new UserToken();
@@ -287,11 +286,10 @@ public class AdminServiceImpl implements AdminService{
 	    userToken.setGeneratedAt(LocalDateTime.now());
 	    userToken.setUser(user);
 	    userTokenRepo.save(userToken);
-	    
-		ApiResponse<User> response  = new ApiResponse<>();
-		response.setData(adminExists.get());
-		response.setMessage("Admin Login Successful");
-		return ResponseEntity.ok(response);
+	    LoginDisplay response = new LoginDisplay(userToken);
+	    response.setUserId(userToken.getUser().getUserId());
+	    response.setUserToken(userToken.getUserToken());
+	    return ResponseEntity.ok(response);
 	}
 
 	@Override

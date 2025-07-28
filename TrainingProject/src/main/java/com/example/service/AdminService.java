@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 
 import com.example.controller.ApiResponse;
 import com.example.dto.LoginDetails;
+import com.example.dto.LoginDisplay;
 import com.example.dto.RegisterAdmin;
 import com.example.dto.UpdateUser;
 import com.example.model.OrderProduct;
@@ -17,7 +18,7 @@ public interface AdminService {
 
 	public ResponseEntity<ApiResponse<User>> getAdminById(Long adminId);
 
-	public ResponseEntity<ApiResponse<User>> updateAdminById(Long adminId, UpdateUser newAdmin);
+	public ResponseEntity<ApiResponse<UpdateUser>> updateAdminById(Long adminId, UpdateUser newAdmin);
 
 	public ResponseEntity<ApiResponse<User>> deleteAdminById(Long adminId);
 
@@ -33,7 +34,7 @@ public interface AdminService {
 
 	public ResponseEntity<ApiResponse<List<Product>>> getAllProducts();
 
-	public ResponseEntity<ApiResponse<?>> loginAdmin(LoginDetails details);
+	public ResponseEntity<LoginDisplay> loginAdmin(LoginDetails details);
 
 	public ResponseEntity<String> logOut();
 

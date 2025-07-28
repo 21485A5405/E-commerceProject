@@ -45,6 +45,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 	
 	    @Enumerated(EnumType.STRING)
 	    private Role userRole;
+	    
+	    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+	    private List<UserToken> tokens;
+
 		
 		@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
 		@JsonIgnore

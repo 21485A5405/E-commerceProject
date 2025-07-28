@@ -20,19 +20,19 @@ public interface UserService {
 	
 	public ResponseEntity<ApiResponse<DisplayUser>> saveUser(RegisterUser user);
 
-	public ResponseEntity<ApiResponse<User>> updateUserById(Long userId, UpdateUser user);
+	public ResponseEntity<ApiResponse<UpdateUser>> updateUserById(Long userId, UpdateUser user);
 
 	public ResponseEntity<ApiResponse<User>> getUserById(Long userId);
 
 	public ResponseEntity<ApiResponse<User>> deleteUserById(Long userId);
 	
-	public ResponseEntity<ApiResponse<User>> changeUserPassword(String eMail, String newPassword);
+	public ResponseEntity<ApiResponse<User>> changeUserPassword(String eMail, String currPassword, String newPassword);
 
-	public ResponseEntity<ApiResponse<LoginDisplay>> loginUser(LoginDetails details);
+	public ResponseEntity<LoginDisplay> loginUser(LoginDetails details);
 
 	public ResponseEntity<ApiResponse<User>> updateUserRole(Set<AdminPermissions> permissions, Long userId);
 
-	public ResponseEntity<ApiResponse<User>> logOut();
+	public ResponseEntity<String> logOut();
 
 	public ResponseEntity<String> addAddress(Address address);
 

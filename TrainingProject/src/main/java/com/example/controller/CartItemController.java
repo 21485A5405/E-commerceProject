@@ -22,12 +22,12 @@ public class CartItemController {
 	private CartItemService cartItemService;
 	
 	public CartItemController(CartItemService cartItemService) {
-		this.cartItemService = cartItemService;	
+		this.cartItemService = cartItemService;
 	}
 	
-	@PostMapping("/add-to-cart/{userId}/{productId}/{quantity}")
-	public ResponseEntity<ApiResponse<CartItem>> addToCart(@PathVariable Long userId, @PathVariable Long productId, @PathVariable int quantity) {
-		return cartItemService.addProductToCart(userId,productId, quantity);
+	@PostMapping("/add-to-cart/{userId}/{productId}")
+	public ResponseEntity<ApiResponse<CartItem>> addToCart(@PathVariable Long userId, @PathVariable Long productId) {
+		return cartItemService.addProductToCart(userId,productId);
 	}
 	
 	@GetMapping("/get-by-user-and-product/{userId}/{productId}")
@@ -40,11 +40,16 @@ public class CartItemController {
 		return cartItemService.getItemsByUserId(userId);
 	}
 	
-	@PutMapping("/update-cart/{userId}/{productId}/{newQuantity}")
-	public ResponseEntity<ApiResponse<CartItem>> updateCart(@PathVariable Long userId, @PathVariable Long productId, @PathVariable int newQuantity) {
-		return cartItemService.updateCart(userId, productId, newQuantity);
+	@PutMapping("/increase-cart/{userId}/{productId}")
+	public ResponseEntity<ApiResponse<CartItem>> increaseCart(@PathVariable Long userId, @PathVariable Long productId) {
+		return cartItemService.increaseCart(userId, productId);
 	}
-
+	
+	@PutMapping("/decrease-cart/{userId}/{productId}")
+	public ResponseEntity<ApiResponse<CartItem>> decreaseCart(@PathVariable Long userId, @PathVariable Long productId) {
+		return cartItemService.decreaseCart(userId, productId);
+	}
+	
 	@DeleteMapping("/delete-all-by-userid/{userId}")
 	public ResponseEntity<ApiResponse<List<CartItem>>> deleteitems(@PathVariable Long userId) {
 		return cartItemService.deleteAllbyUserId(userId);

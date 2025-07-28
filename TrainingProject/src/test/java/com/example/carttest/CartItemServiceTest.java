@@ -57,7 +57,7 @@ public class CartItemServiceTest {
 	    when(cartItemRepo.findByUserAndProduct(1L, 100L)).thenReturn(Optional.empty());
 	    when(cartItemRepo.save(any(CartItem.class))).thenReturn(cartItem);
 
-	    ResponseEntity<ApiResponse<CartItem>> response = cartItemService.addProductToCart(1L, 100L, 2);
+	    ResponseEntity<ApiResponse<CartItem>> response = cartItemService.addProductToCart(1L, 100L);
 
 	    assertEquals("Item Added Into Cart Successfully", response.getBody().getMessage());
 	    assertEquals(100, response.getBody().getData().getTotalPrice());
@@ -67,7 +67,7 @@ public class CartItemServiceTest {
 	void testLoginOrNot() {
 	    when(currentUser.getUser()).thenReturn(null);
 
-	    UnAuthorizedException exception = assertThrows(UnAuthorizedException.class, () -> cartItemService.addProductToCart(1L, 100L, 2));
+	    UnAuthorizedException exception = assertThrows(UnAuthorizedException.class, () -> cartItemService.addProductToCart(1L, 100L));
 	    assertEquals("Please Login", exception.getMessage());
 	}
 
@@ -80,7 +80,7 @@ public class CartItemServiceTest {
 	    when(userRepo.findById(1L)).thenReturn(Optional.of(user));
 	    when(productRepo.findById(100L)).thenReturn(Optional.empty());
 
-	    ProductNotFoundException exception = assertThrows(ProductNotFoundException.class, () -> cartItemService.addProductToCart(1L, 100L, 2));
+	    ProductNotFoundException exception = assertThrows(ProductNotFoundException.class, () -> cartItemService.addProductToCart(1L, 100L));
 	    assertEquals("Product Not Found to Add Into Cart", exception.getMessage());
 	}
 
@@ -98,7 +98,7 @@ public class CartItemServiceTest {
 	    when(productRepo.findById(100L)).thenReturn(Optional.of(product));
 	    when(cartItemRepo.findByUserAndProduct(1L, 100L)).thenReturn(Optional.empty());
 
-	    CustomException exception = assertThrows(CustomException.class, () -> cartItemService.addProductToCart(1L, 100L, 10));
+	    CustomException exception = assertThrows(CustomException.class, () -> cartItemService.addProductToCart(1L, 100L));
 	    assertTrue(exception.getMessage().contains("Enough Quantity Selected"));
 	}
 
@@ -118,7 +118,7 @@ public class CartItemServiceTest {
 	    when(userRepo.findById(1L)).thenReturn(Optional.of(target));
 	    when(productRepo.findById(100L)).thenReturn(Optional.of(product));
 
-	    UnAuthorizedException exception = assertThrows(UnAuthorizedException.class, () -> cartItemService.addProductToCart(1L, 100L, 2));
+	    UnAuthorizedException exception = assertThrows(UnAuthorizedException.class, () -> cartItemService.addProductToCart(1L, 100L));
 	    assertEquals("User Not Authorized to Add Product Into Another Account", exception.getMessage());
 	}
 

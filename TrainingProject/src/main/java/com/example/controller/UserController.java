@@ -30,14 +30,11 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/users")
 public class UserController {
-
-    private final SecurityConfiguration securityConfiguration;
 	
 	private UserService userService;
 	
-	public UserController(UserService userService, SecurityConfiguration securityConfiguration) {
+	public UserController(UserService userService) {
 		this.userService = userService;
-		this.securityConfiguration = securityConfiguration;
 		
 	}
 	
@@ -47,7 +44,8 @@ public class UserController {
 	}
 	
 	@PostMapping("/login-user")
-	public ResponseEntity<ApiResponse<LoginDisplay>> loginUser(@RequestBody LoginDetails details) {
+	public ResponseEntity<LoginDisplay> loginUser(@RequestBody LoginDetails details) {
+		System.out.println(details.toString());
 		return userService.loginUser(details);
 	}
 	@GetMapping("/get-user-by-id/{userId}")
@@ -56,13 +54,13 @@ public class UserController {
 	}
 	
 	@PutMapping("/update-user/{userId}")
-	public ResponseEntity<ApiResponse<User>> updateUser(@PathVariable Long userId, @RequestBody UpdateUser user) {
+	public ResponseEntity<ApiResponse<UpdateUser>> updateUser(@PathVariable Long userId, @RequestBody UpdateUser user) {
 		return userService.updateUserById(userId, user);
 	}
 	
-	@PutMapping("/change-password/{eMail}/{newPassword}")
-	public ResponseEntity<ApiResponse<User>> changePassword(@PathVariable String eMail, @PathVariable String newPassword) {
-		return userService.changeUserPassword(eMail, newPassword);
+	@PutMapping("/change-password/{eMail}/{currPassword}/{newPassword}")
+	public ResponseEntity<ApiResponse<User>> changePassword(@PathVariable String eMail, @PathVariable String currPassword, @PathVariable String newPassword) {
+		return userService.changeUserPassword(eMail, currPassword, newPassword);
 	}
 	
 	@DeleteMapping("/delete-user-by-id/{userId}")
@@ -88,7 +86,7 @@ public class UserController {
 		return userService.addPayment(paymentDetails);
 	}
 	@DeleteMapping("/logout-user")
-	public ResponseEntity<ApiResponse<User>> logOut() {
+	public ResponseEntity<String> logOut() {
 		return userService.logOut();
 	}
 }

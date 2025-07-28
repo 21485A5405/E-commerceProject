@@ -12,7 +12,7 @@ import jakarta.transaction.Transactional;
 
 public interface CartItemService {
 	
-	public ResponseEntity<ApiResponse<CartItem>> addProductToCart(Long userId,Long productId, int quantity);
+	public ResponseEntity<ApiResponse<CartItem>> addProductToCart(Long userId,Long productId);
 	
 	public ResponseEntity<ApiResponse<CartItem>> getCartItems(Long userId, Long productId);
 	
@@ -25,7 +25,7 @@ public interface CartItemService {
 	public ResponseEntity<ApiResponse<List<CartItem>>> deleteAllbyUserId(Long userId);
 
 	
-	public ResponseEntity<ApiResponse<CartItem>> updateCart(Long userId, Long productId, int newQuantity);
+	public ResponseEntity<ApiResponse<CartItem>> increaseCart(Long userId, Long productId);
 
-
+	public ResponseEntity<ApiResponse<CartItem>> decreaseCart(Long userId, Long productId);
 }
